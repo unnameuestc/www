@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>图片管理</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+
+<div style="width: 90%; margin-left: auto; margin-right: auto; padding-top: 10px; margin-bottom: 30px;">
+   <div class="container" style="min-width: 100%;">
+       <div class="row">
+           <div class="col-md-6">
+               <h2>艺术品</h2><hr/>
+
+               <form class="form-horizontal" style="margin-left: 18px; margin-right: 18px;">
+                   <div class="form-group">
+                       <button type="button" class="col-md-3 btn btn-default" disabled>艺术品 id</button>
+                       <div class="col-md-4">
+                           <input type="text" class="form-control" id="inputArtId" onkeypress="return IsNum(event)" required>
+                       </div>
+                       <button id="loadArt" type="button" class="col-md-2 btn btn-primary">搜索</button>
+                       <div class="col-md-3"></div>
+                   </div>
+               </form>
+
+               <div style="font-size: 26px; margin-top: 20px; margin-bottom: 20px;">
+                <p id="artTitle"></p>
+               </div>
+
+               <div id="imgList">
+               </div>
+
+           </div>
+           <div class="col-md-1">
+           </div>
+           <div class="col-md-5">
+               <h2>添加图片</h2><hr/>
+               <input type="file" name="file_upload" id="file_upload" />
+               <input id="uploadBtn" class="btn btn-primary" type="button" value="上传" />
+               <input id="cancelBtn" class="btn btn-primary" type="button" value="取消" />
+           </div>
+       </div>
+   </div>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/uploadify/uploadify.css">
+<script type="text/javascript" src="/uploadify/jquery.uploadify.min.js"></script>
+
+<script language="javascript" type="text/javascript">
+	function IsNum(e) {
+		var k = window.event ? e.keyCode : e.which;
+		if (((k >= 48) && (k <= 57)) || k == 8 || k == 0) {
+		} else {
+			if (window.event) {
+				window.event.returnValue = false;
+			}
+			else {
+				e.preventDefault(); //for firefox 
+			}
+		}
+	} 
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#uploadBtn").click(function(){
+            if(isNull($("#artTitle").text())){
+                showError("请先确定艺术品");
+            }else {
+                $('#file_upload').uploadify('upload', '*');
+            }
+        });
+
+        $("#cancelBtn").click(function(){
+            $('#file_upload').uploadify('cancel','*');
+
+            $("#inputArtId").attr("disabled", false);
+            $("#loadArt").attr("disabled", false);
+            $("#uploadBtn").attr("disabled", false);
+        });
+
+        //出错
+        function showError(err){
+            $("#errStr").show();
+            $("#errStr").text(err);
+
+            $("#inputArtId").attr("disabled", false);
+            $("#loadArt").attr("disabled", false);
+        }
+
+        var art_id = $.query.get("artid");
+        if(!isNull(art_id)){
+            $("#inputArtId").val(art_id);
+            reloadArt();
+        }
+
+        $("#loadArt").click(function(){
+            reloadArt();
+        });
+
+        function reloadArt(){
+            var art_id = $("#inputArtId").val();
+            if(isNull(art_id)){
+                return;
+            }
+
+            $("#errStr").hide();
+            $("#inputArtId").attr("disabled", true);
+            $("#loadArt").attr("disabled", true);
+
+            //初始化
+            $("#artTitle").text("");
+            $("#imgList").html("");
+
+            art_getArtInfo(art_id,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        showError("获取艺术品信息失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            //标题
+                            $("#artTitle").text("标题: " + json.result.art.title);
+
+                            //图片列表
+                            var imgData = "";
+                            for(i = 0; i < json.result.art.imgCnt; i++){
+                                var imgObj = json.result.art.imgList[i];
+                                imgData += "<div class=\"art-img-div\"><img src=\""
+                                + imgObj.url + "\" class=\"art-img\"><br/><button type=\"button\" class=\"btn btn-danger art-img-del\" value=\""
+                                + imgObj.id + "\">删除</button></div>";
+                            }
+                            $("#imgList").html(imgData);
+
+                            $(".art-img-del").click(function(){
+                                var imgId = $(this).val();
+                                swal({
+                                            title: "确定删除?",
+                                            text: "是否删除该图片？，删除后不可恢复!",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#DD6B55",
+                                            cancelButtonText: "取消",
+                                            confirmButtonText: "确定删除",
+                                            closeOnConfirm: false
+                                        },
+                                        function() {
+                                            art_delArtImg(
+                                                    imgId,
+                                                    function(XMLHttpRequest, textStatus, errorThrown) {
+                                                        swal("出错", "删除图片失败, 请重试.", "error");
+                                                        fixSwalCss();
+                                                    },
+                                                    function(json){
+                                                        if(json.invoke){
+                                                            swal("已删除!", "图片已删除.", "success");
+                                                            fixSwalCss();
+
+                                                            //重新加载
+                                                            reloadArt();
+                                                        }else {
+                                                            swal("出错", "图片删除失败: " + json.error, "error");
+                                                            fixSwalCss();
+                                                        }
+                                                    }
+                                            );
+                                        });
+                                fixSwalCss();
+                            });
+                        }else {
+                            showError("获取艺术品信息失败: " + json.error);
+                        }
+
+                        $("#inputArtId").attr("disabled", false);
+                        $("#loadArt").attr("disabled", false);
+                    }
+            );
+        }
+
+        $('#file_upload').uploadify({
+            'swf'      : '/uploadify/uploadify.swf',
+            'uploader' : '/upload.php',
+            'buttonText': '选择图片',
+			'fileObjName': 'Filedata',
+            'fileSizeLimit': '10MB',//文件大小显示
+            'queueSizeLimit': 20,//上传文件个数限制
+            'fileTypeExts':'*.png;*.jpg;*.jpeg;*.gif',//文件过滤器
+            'fileTypeDesc':'Images',//文件过滤器 详解见文档
+            'progressData': 'speed',//上传速度显示
+            'auto': false,//是否自动上传
+            'multi': true,//是否多文件上传
+            'onUploadSuccess' : function(file, data, response) {
+//                alert('The file ' + file.name + ' was successfully uploaded with a response of ' + response);
+//                alert("data:" + data);
+                var json = jQuery.parseJSON(data);
+//                alert("json.isOk:" + json.isOk);
+                if(!json.isOk){
+                    $("#errStr").text("上传图片失败：" + json.msg);
+                    $("#errStr").show();
+                }else{
+                    //添加图片
+                    art_addArtImg(
+                            $("#inputArtId").val(),
+                            json.msg,
+                            function(XMLHttpRequest, textStatus, errorThrown) {
+                                $("#errStr").text("添加图片失败");
+                                $("#errStr").show();
+                            },
+                            function(json){
+                                if(json.invoke){
+                                    reloadArt();
+                                }else {
+                                    $("#errStr").text("添加图片失败: " + json.error);
+                                    $("#errStr").show();
+                                }
+                            }
+                    );
+                }
+            },
+            'onQueueComplete' : function(queueData) {
+                $("#inputArtId").attr("disabled", false);
+                $("#loadArt").attr("disabled", false);
+                $("#uploadBtn").attr("disabled", false);
+            },
+            'onUploadError' : function(file, errorCode, errorMsg, errorString) {
+                $("#errStr").text("上传失败：" + errorMsg);
+                $("#errStr").show();
+            },
+            'onSelect' : function(file) {
+                $("#errStr").hide();
+            },
+            'onUploadStart' : function(file) {
+                $("#inputArtId").attr("disabled", true);
+                $("#loadArt").attr("disabled", true);
+                $("#uploadBtn").attr("disabled", true);
+            }
+        });
+    });
+</script>
+
+</body>
+
+</html>

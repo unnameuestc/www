@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>编辑用户</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<p class="frame-header">编辑用户</p>
+
+<div style="width: 550px; margin-left: auto; margin-right: auto; padding-top: 30px;  margin-bottom: 30px;">
+<div class="panel panel-default">
+    <div class="panel-body" style="padding-top: 30px;">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label for="inputName" class="col-sm-2 control-label">用户名</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputName" required disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputNickName" class="col-sm-2 control-label">昵称</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputNickName" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputProfile" class="col-sm-2 control-label">简介</label>
+                <div class="col-sm-10">
+                    <textarea rows="5" class="form-control" id="inputProfile" required></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputCertify" class="col-sm-2 control-label">认证</label>
+                <div class="col-sm-10">
+                    <select class="form-control" id="inputCertify" multiple="multiple">
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button id="doEdit" type="submit" class="btn btn-primary" style="min-width: 135px;">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        //出错
+        function showError(err){
+            $("#doEdit").attr("disabled", false);
+            $("#doEdit").text("提交");
+            $("#errStr").show();
+            $("#errStr").text(err);
+        }
+
+        //提交
+        function submitAll(userId){
+            $("#doEdit").text("正在提交数据...");
+            //昵称、简介
+            user_updateInfo(userId,
+                    $("#inputNickName").val(),
+                    $("#inputProfile").val(),
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        showError("提交数据失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            //认证
+                            $("#doEdit").text("正在认证...");
+                            submitCertify(userId);
+                        }else {
+                            showError("认证失败: " + json.error);
+                        }
+                    });
+        }
+
+        function submitCertify(userId){
+            var certify_list = '';
+            $('#inputCertify option:selected').each(function(){
+                certify_list += $(this).val()+",";
+            });
+
+            if(isNull(certify_list)){
+                certify_list = ',';
+            }
+
+            user_certify(userId,
+                    certify_list,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        showError("提交数据失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            $("#doEdit").attr("disabled", false);
+                            $("#doEdit").text("提交");
+                            $("#errStr").hide();
+
+                            alert("修改成功");
+                        }else {
+                            showError("提交数据失败: " + json.error);
+                        }
+                    }
+            )
+        }
+
+        var user_id = $.query.get("userid");
+        user_getCertifyTypes(
+                function(XMLHttpRequest, textStatus, errorThrown) {
+                    showError("获取认证信息失败!");
+                },
+                function(json){
+                    if(json.invoke){
+                        var rows = "";
+                        for (i = 0; i < json.result.certifyTypes.length; i++) {
+                            var certifyObj = json.result.certifyTypes[i];
+                            rows += "<option value=\"" + certifyObj.id + "\">" + certifyObj.title + "</option>";
+                        }
+
+                        $("#inputCertify").append(rows);
+                        loadUserInfo();
+                    }else {
+                        showError("获取认证信息失败: " + json.error);
+                    }
+                });
+
+        function loadUserInfo(){
+            if(!isNull(user_id)){
+                user_getInfo(user_id, null, null,
+                        function(XMLHttpRequest, textStatus, errorThrown) {
+                            showError("获取用户信息失败!");
+                        },
+                        function(json){
+                            if(json.invoke){
+                                $("#inputName").val(json.result.user.name);
+                                $("#inputNickName").val(json.result.user.nickName);
+                                $("#inputProfile").val(json.result.user.profile);
+
+                                $("#inputCertify").val(json.result.user.certifyTypes);
+
+                                if(typeof(json.result.user.certifyTypes) != "undefined") {
+                                    var certifies = json.result.user.certifyTypes.split(",");
+                                    for(var i = 0;i<certifies.length;i++){
+                                        //$("#inputCertify").option[Number(certifies[i])].selected = true;
+                                        $("#inputCertify").find("option[value=" + Number(certifies[i]) + "]").attr("selected",true);
+                                    }
+                                }
+                            }else {
+                                showError("获取用户信息失败: " + json.error);
+                            }
+                        }
+                );
+            }else{
+                showError("获取用户信息失败！");
+            }
+
+            $("#doEdit").click(function(){
+                $("#doEdit").attr("disabled", true);
+                $("#doEdit").text("正在提交...");
+                $("#errStr").hide();
+
+                submitAll(user_id);
+            });
+        }
+    });
+</script>
+
+</body>
+
+</html>

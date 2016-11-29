@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>管理分组</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+
+<div class="frame-header">
+    <span>管理分组</span>
+    <button id="addGroup" class="btn btn-success" style="margin-left: 20px">添加</button>
+</div>
+
+<form class="form-horizontal" style="margin-left: 20px; margin-right: 20px; max-width: 500px;">
+    <div class="form-group">
+        <button type="button" class="col-md-3 btn btn-default" disabled>艺术家(用户名)</button>
+        <div class="col-md-4">
+            <input type="text" class="form-control" id="inputUserName"  required>
+        </div>
+        <button id="loadUser" type="button" class="col-md-2 btn btn-primary">搜索</button>
+        <div class="col-md-3"></div>
+    </div>
+</form>
+<span id="groupCnt" style="padding-top: 6px; margin-left: 20px; font-size: 16px; float: left;"></span>
+
+<div style="width: 80%; margin-left: auto; margin-right: auto; padding-top: 40px; margin-bottom: 30px;">
+
+    <table class="table" id="groupList" style="display: none;">
+        <tr>
+            <td>ID</td>
+            <td>艺术家</td>
+            <td>分组名</td>
+            <td>创建日期</td>
+            <td>艺术品个数</td>
+            <td>简介</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<script src="/js/api.js"></script>
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/popwin.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#addGroup").click(function(){
+            popWin.onClose(function(){
+                if(!isNull($("#inputUserName").val())){
+                    reloadGroup();
+                }
+            });
+            popWin.showWin("850","500","添加分组","add-group.html");
+        });
+
+        //出错
+        function showError(err) {
+            $("#errStr").show();
+            $("#errStr").text(err);
+        }
+
+        $("#loadUser").click(function(){
+            $("#errStr").hide();
+
+            var user_name = $("#inputUserName").val();
+            if(isNull(user_name)){
+                $("#errStr").show();
+                $("#errStr").text("请指定艺术家");
+                return;
+            }
+
+            user_getInfo(
+                    null,
+                    user_name,
+                    null,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        showError("搜索艺术家失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            var userId = json.result.user.id;
+                            $("#inputUserName").attr("userid", userId);
+                            reloadGroup();
+                        }else {
+                            showError("搜索艺术家失败: " + json.error);
+                        }
+                    }
+            );
+        });
+
+        //获取数据
+        function reloadGroup() {
+            $("#errStr").hide();
+
+            //获取user_id
+            var user_id = $("#inputUserName").attr("userid");
+            if(isNull(user_id)){
+                $("#errStr").show();
+                $("#errStr").text("请先指定艺术家");
+                return;
+            }
+
+            //重置table
+            $("#groupList").html("<tr><td>ID</td>"
+                    + "<td>艺术家</td>"
+                    + "<td>分组名</td>"
+                    + "<td>创建日期</td>"
+                    + "<td>艺术品个数</td>"
+                    + "<td>简介</td>"
+                    + "<td></td>"
+                    + "<td></td></tr>");
+
+            art_getGroup(user_id, null,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取分组列表失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            $('#groupCnt').text("分组数：" + json.result.cnt);
+
+                            var rows = "";
+                            for(i = 0; i < json.result.cnt; i++){
+                                var groupObj = json.result.groups[i];
+                                rows += "<tr><td>"
+                                        + groupObj.id + "</td><td>"
+                                        + groupObj.userNickName + "</td><td>"
+                                        + "<a class=\"showGroup\" href=\"#\" gid=\"" + groupObj.id + "\">" + groupObj.name + "</a>" + "</td><td>"
+                                        + groupObj.createTime + "</td><td>"
+                                        + groupObj.artCnt + "</td><td>"
+                                        + groupObj.des.substr(0, 20) + "..." + "</td><td>"
+                                        + "<a class=\"editGroup\" href=\"#\" gid=\"" + groupObj.id + "\">编辑</a>" + "</td><td>"
+                                        + "<a class=\"delGroup\" href=\"#\" gid=\"" + groupObj.id + "\">删除</a>" + "</td></tr>";
+                            }
+
+                            $('#groupList').append(rows);
+                            $('#groupList').show();
+
+                            $(".showGroup").click(function(){
+                                var query = $.query.set("groupid", $(this).attr("gid")).toString();
+                                popWin.showWin("850","500","预览分组","show-group.html" + query);
+                            });
+
+                            $(".editGroup").click(function(){
+                                var query = $.query.set("groupid", $(this).attr("gid")).toString();
+                                popWin.onClose(function(){
+                                    reloadGroup();
+                                });
+                                popWin.showWin("850","500","编辑分组","add-group.html" + query);
+                            });
+
+                            $(".delGroup").click(function(){
+                                var gid = $(this).attr("gid");
+                                swal({
+                                            title: "确定删除?",
+                                            text: "是否删除该分组？，删除后不可恢复!",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#DD6B55",
+                                            cancelButtonText: "取消",
+                                            confirmButtonText: "确定删除",
+                                            closeOnConfirm: false
+                                        },
+                                        function() {
+                                            art_delGroup(
+                                                    gid,
+                                                    function(XMLHttpRequest, textStatus, errorThrown) {
+                                                        swal("出错", "分组删除失败, 请重试.", "error");
+                                                        fixSwalCss();
+                                                    },
+                                                    function(json){
+                                                        if(json.invoke){
+                                                            swal("已删除!", "分组已删除.", "success");
+                                                            fixSwalCss();
+
+                                                            //重新加载
+                                                            reloadGroup();
+                                                        }else {
+                                                            swal("出错", "分组删除失败: " + json.error, "error");
+                                                            fixSwalCss();
+                                                        }
+                                                    }
+                                            );
+                                        });
+                                fixSwalCss();
+                            });
+                        }else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取分组列表失败!");
+                        }
+                    }
+            );
+        }
+    });
+</script>
+
+</body>
+
+
+</html>

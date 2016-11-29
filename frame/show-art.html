@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>艺术品预览</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<p class="frame-header">艺术品预览</p>
+
+<div style="width: 550px; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+    <div class="panel panel-default">
+        <div class="panel-body" style="padding-top: 30px; padding-left: 20px; padding-right: 20px;">
+            <div style="font-size: 30px; text-align: center; margin-bottom: 20px;">
+                <h1 id="user-nickname"></h1>
+                <img id="user-img" src="#" width="80px" height="80px" class="img-circle" style="border: 2px solid #ccc;">
+            </div>
+            <p id="user-des" style="text-align: center; margin-bottom: 20px;"></p>
+
+            <div id="imgList">
+            </div>
+
+            <p id="artTitle" style="margin-top: 40px; font-size: 20px; font-weight: 600;"></p>
+            <p id="artContent" style="font-size: 14px;"></p>
+
+            <p id="tradable" style="margin-top: 40px; font-size: 20px; font-weight: 600;">出售信息</p>
+            <p id="tradeDes" style="font-size: 14px;"></p>
+        </div>
+    </div>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+    <button id="btn-back" type="button" onclick="window.location='add-video.html'" class="btn btn-default" style="min-width: 135px;">返回</button>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<script type="text/javascript">
+
+    $(document).ready(function(){
+        var art_id = $.query.get("artid");
+        var back_url = $.query.get("backurl");
+
+        if(isNull(art_id)){
+            self.location='add-art.html';
+        }
+
+        if(!isNull(back_url)){
+            $("#btn-back").attr("onclick", "window.location='" + back_url + "'");
+        }else{
+            $("#btn-back").hide();
+        }
+
+        //出错
+        function showError(err){
+            $("#errStr").show();
+            $("#errStr").text(err);
+        }
+
+        art_getArtInfo(art_id,
+                function(XMLHttpRequest, textStatus, errorThrown) {
+                    showError("获取艺术品信息失败!");
+                },
+                function(json){
+                    if(json.invoke){
+                        //艺术家昵称、头像、标题、简介
+                        $("#user-nickname").text(json.result.art.userNickName);
+                        $("#user-img").attr("src", json.result.art.userAvatarUrl);
+                        $("#artTitle").text(json.result.art.title + "简介");
+                        $("#artContent").text(json.result.art.content);
+
+                        //出售信息
+                        if(json.result.art.tradeState != "0"){
+                            $("#tradable").show();
+                            $("#tradeDes").text(json.result.art.tradeDes).show();
+                        }else{
+                            $("#tradable").hide();
+                            $("#tradeDes").hide();
+                        }
+
+                        //图片列表
+                        var imgData = "";
+                        for(i = 0; i < json.result.art.imgCnt; i++){
+                            var imgObj = json.result.art.imgList[i];
+                            imgData += "<div class=\"art-img-div\"><img src=\""
+                                    + imgObj.url + "\" class=\"art-img\"><br/></div>";
+                        }
+                        $("#imgList").html(imgData);
+
+                        //用户简介
+                        user_getInfo(
+                                json.result.art.userId,
+                                null,
+                                function(XMLHttpRequest, textStatus, errorThrown) {
+                                    showError("获取艺术家信息失败!");
+                                },
+                                function(json){
+                                    if(json.invoke){
+                                        $("#user-des").text(json.result.user.profile);
+                                    }else {
+                                        showError("获取艺术家信息失败: " + json.error);
+                                    }
+                                }
+                        );
+                    }else {
+                        showError("获取艺术品信息失败: " + json.error);
+                    }
+                }
+        );
+
+        //是否是分享模式
+        var share = $.query.get("share");
+        if(share == "1"){
+            $(".frame-header").hide();
+        }
+
+        //是否显示app下载链接
+        var applink = $.query.get("applink");
+        if(applink == "1"){
+            $("#bottomNav").show();
+        }
+
+        $("#bottomClose").click(function(){
+            $("#bottomNav").animate({
+                opacity: "hide"
+            }, "slow");
+        });
+    });
+</script>
+
+</body>
+
+<div id="bottomNav">
+    <button id="bottomClose" type="button" class="btn applink-close">
+        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+    </button>
+</div>
+
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>后台管理 - 主尚移动文化馆</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+	
+	<link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+  
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+		  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">主尚移动文化馆 @bmi.uestc</a>
+        </div>
+		<div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Admin</a></li>
+            <li><a href="/status.html">Status</a></li>
+            <li><a href="/api-doc/" target="_blank">api-doc</a></li>
+          </ul>
+		  <ul class="nav navbar-nav navbar-right">
+              <li id="loginUser" style="display: none;"><a href="#"></a></li>
+              <li><button id="logout" type="button" class="btn btn-danger navbar-btn" style="display: none;">退出登录</button></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+	
+	<div class="container-fluid">
+      <div class="row">
+        <div class="sidebar" id="sidebar">
+
+          <ul class="nav nav-sidebar">
+            <li id="nav-m-u"><a href="#">用户管理</a></li>
+          </ul>
+
+          <ul class="nav nav-sidebar">
+            <li id="nav-m-v"><a href="#">视频管理</a></li>
+          </ul>
+
+          <ul class="nav nav-sidebar">
+            <li id="nav-m-a"><a href="#">艺品管理</a></li>
+          </ul>
+
+          <ul class="nav nav-sidebar">
+            <li id="nav-m-g"><a href="#">艺品分组</a></li>
+          </ul>
+
+          <ul class="nav nav-sidebar">
+            <li id="nav-m-p"><a href="#">文章管理</a></li>
+          </ul>
+
+          <ul class="nav nav-sidebar">
+            <li id="nav-m-b"><a href="#">轮播管理</a></li>
+          </ul>
+
+          <ul class="nav nav-sidebar">
+            <li id="nav-m-c"><a href="#">评论管理</a></li>
+          </ul>
+
+          <ul class="nav nav-sidebar">
+            <li id="nav-m-t"><a href="#">订单管理</a></li>
+          </ul>
+
+          <ul class="nav nav-sidebar">
+            <li id="nav-m-s"><a href="#">意见反馈</a></li>
+          </ul>
+
+        </div>
+		
+        <div class="main">
+          <iframe id="main-frame" frameborder="0" width="100%" height="100%" marginheight="0" marginwidth="0" scrolling="yes" src=""></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+	<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+    <script src="/js/api.js"></script>
+
+	<script type="text/javascript">
+	$(document).ready(function(){
+
+      adjustIFrameHeight();
+      $(window).resize(function(){
+        adjustIFrameHeight();
+      });
+
+      function adjustIFrameHeight(){
+        $("#main-frame").attr("height", $(window).height() - 55);
+      }
+
+      function showNavFrame(selector, frameUrl){
+        $("#nav-m-u, #nav-m-v, #nav-m-a, #nav-m-g, #nav-m-p, #nav-m-b, #nav-m-c, #nav-m-t, #nav-m-s").removeClass("active");
+
+        $(selector).addClass("active");
+        $("#main-frame").attr("src", frameUrl);
+      }
+
+      $("#nav-m-u > a").click(function(){
+        showNavFrame("#nav-m-u", "frame/mana-user.html");
+      });
+
+      $("#nav-m-v > a").click(function(){
+        showNavFrame("#nav-m-v", "frame/mana-video.html");
+      });
+
+      $("#nav-m-a > a").click(function(){
+        showNavFrame("#nav-m-a", "frame/mana-art.html");
+      });
+
+      $("#nav-m-g > a").click(function(){
+        showNavFrame("#nav-m-g", "frame/mana-group.html");
+      });
+
+      $("#nav-m-p > a").click(function(){
+        showNavFrame("#nav-m-p", "frame/mana-page.html");
+      });
+
+      $("#nav-m-b > a").click(function(){
+        showNavFrame("#nav-m-b", "frame/mana-banner.html");
+      });
+
+      $("#nav-m-c > a").click(function(){
+        showNavFrame("#nav-m-c", "frame/mana-comment.html");
+      });
+
+      $("#nav-m-t > a").click(function(){
+        showNavFrame("#nav-m-t", "frame/mana-trade.html");
+      });
+
+      $("#nav-m-s > a").click(function(){
+        showNavFrame("#nav-m-s", "frame/mana-suggest.html");
+      });
+      $("#loginUser").hide();
+
+	  var cookie_authKey = $.cookie("authKey");
+      var cookie_adminName = $.cookie("loginName");
+	  if(isNull(cookie_authKey) || isNull(cookie_adminName)){
+		self.location='/index.html';
+	  }else{
+        $("#loginUser").find("a").text(cookie_adminName);
+        $("#loginUser").show();
+
+	    $("#logout").show();
+		$("#logout").click(function(){
+          other_adminLogout(
+                  function(XMLHttpRequest, textStatus, errorThrown) {
+                    alert("退出登录失败：请重试");
+                  },
+                  function(json){
+                    if(json.invoke){
+                      $.cookie('authKey', null);
+                      self.location='/index.html';
+                    }else {
+                      alert("退出登录失败：" + json.error);
+                    }
+                  }
+          );
+		});
+	  }
+      $("#nav-m-u > a").click();
+	});
+	</script>
+  </body>
+</html>

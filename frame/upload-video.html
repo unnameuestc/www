@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>视频上传</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style type="text/css">
+        body {
+            font: 13px Arial, Helvetica, Sans-serif;
+        }
+    </style>
+</head>
+<body class="frame-body">
+<p class="frame-header">上传视频</p>
+
+<div style="width: 550px; margin-left: auto; margin-right: auto; padding-top: 30px;  margin-bottom: 30px;">
+    <div class="panel panel-default">
+        <div class="panel-body" style="padding-top: 30px;">
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <div id="queue"></div>
+                    <label for="file_upload" class="col-sm-2 control-label">视频文件</label>
+                    <div class="col-sm-10">
+                        <input id="file_upload" name="file_upload" type="file" multiple="false">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <input id="uploadBtn" class="btn btn-primary" type="button" value="上传" />
+                        <input id="cancelBtn" class="btn btn-primary" type="button" value="取消" />
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/uploadify/uploadify.css">
+<script type="text/javascript" src="/uploadify/jquery.uploadify.min.js"></script>
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        $("#uploadBtn").click(function(){
+            $('#file_upload').uploadify('upload', '*');
+        });
+
+        $("#cancelBtn").click(function(){
+            $('#file_upload').uploadify('cancel','*');
+            $("#uploadBtn").attr("disabled", false);
+        });
+
+        //出错
+        function showError(err){
+            $("#errStr").show();
+            $("#errStr").text(err);
+        }
+
+
+        var video_id = $.query.get("videoid");
+
+        $('#file_upload').uploadify({
+            'swf'      : '../uploadify/uploadify.swf',
+            'uploader' : '../uploadify/uploadify.php',
+            'buttonText': '选择视频文件',
+            'auto'	: false,
+            'uploadLimit' : 1,
+            'fileSizeLimit' : '1GB',
+            'fileTypeDesc'  : 'Video Files',
+            'fileTypeExts'  : '*.mp4',
+//            'onQueueComplete' : function(queueData) {
+//                alert(queueData.uploadsSuccessful + ' files were successfully uploaded.');
+//            },
+            'onUploadSuccess' : function(file, data, response) {
+//                alert('The file ' + file.name + ' was successfully uploaded with a response of ' + response);
+//                alert("新图片名字是" + data);
+//                获取当前页面完整URL
+//                alert("URL:" +  window.location.href.toString());
+//                alert("host:" + window.location.host);
+//                alert("host2:" + document.domain);
+
+                //拼接文件上传全路径（URL）
+                var host = document.domain;
+                var video_url = "http://" + host + "/upload/video/" + data;
+
+//                alert("video_url:" + video_url);
+
+                    //添加视频
+                video_addVideoing(
+                        video_id,
+                        video_url,
+                        function(XMLHttpRequest, textStatus, errorThrown) {
+                            $("#errStr").text("添加视频失败");
+                            $("#errStr").show();
+                        },
+                        function(json){
+                            if(json.invoke){
+                                var query = $.query
+                                        .set("videoid", json.result.video.id)
+                                        .set("backurl", "upload-video.html" + $.query.set("videoid", video_id).toString())
+                                        .toString();
+                                self.location = "show-video.html" + query;
+                            }else {
+                                $("#errStr").text("添加视频失败: " + json.error);
+                                $("#errStr").show();
+                            }
+                        }
+                );
+            },
+            'onSelect' : function(file) {
+                $("#errStr").hide();
+            },
+            'onUploadStart' : function(file) {
+                $("#uploadBtn").attr("disabled", true);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

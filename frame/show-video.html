@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>视频预览</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<p class="frame-header">视频预览</p>
+
+<div style="width: 550px; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+    <div class="panel panel-default">
+        <div class="panel-body" style="padding-top: 30px;">
+            <div style="font-size: 30px; padding: 20px 20px 0px;">
+                <h1 id="video-title"></h1><hr/>
+                <img id="user-img" src="#" width="60px" height="60px" class="img-circle" style="border: 2px solid #ccc;">
+                <span id="video-user"></span>
+                <button type="button" class="btn btn-default" style="border: 1px solid #ff0000; float:right; margin-top: 10px;">关注</button>
+            </div>
+            <p id="update-time" style="float:right; padding-right: 20px;"></p>
+
+            <p id="videoDes" style="padding: 20px; margin-top: 40px; font-size: 16px;"></p>
+            <video id="media" src="#" width="100%" height="100%" controls poster="#" style="padding: 20px;"></video>
+        </div>
+    </div>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+    <button id="btn-back" type="button" onclick="window.location='add-video.html'" class="btn btn-default" style="min-width: 135px;">返回</button>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        var video_id = $.query.get("videoid");
+        var back_url = $.query.get("backurl");
+
+        if(isNull(video_id)){
+            self.location='add-video.html';
+        }
+
+        if(!isNull(back_url)){
+            $("#btn-back").attr("onclick", "window.location='" + back_url + "'");
+        }else{
+            $("#btn-back").hide();
+        }
+
+        //出错
+        function showError(err){
+            $("#errStr").show();
+            $("#errStr").text(err);
+        }
+
+        video_getVideoInfo(video_id,
+                function(XMLHttpRequest, textStatus, errorThrown) {
+                    showError("获取视频信息失败!");
+                },
+                function(json){
+                    if(json.invoke){
+                        //标题，更新时间，封面，视频地址
+                        $("#video-title").text(json.result.video.title);
+                        $("#update-time").text(json.result.video.createTime);
+                        $("#videoDes").text(json.result.video.description);
+                        $("#media").attr("poster", json.result.video.picUrl);
+                        $("#media").attr("src", json.result.video.videoUrl);
+                        $("#user-img").attr("src", json.result.video.userAvatarUrl);
+                        $("#video-user").text(json.result.video.userNickName);
+                    }else {
+                        showError("获取视频信息失败: " + json.error);
+                    }
+                }
+        );
+
+        //是否是分享模式
+        var share = $.query.get("share");
+        if(share == "1"){
+            $(".frame-header").hide();
+        }
+
+        //是否显示app下载链接
+        var applink = $.query.get("applink");
+        if(applink == "1"){
+            $("#bottomNav").show();
+        }
+
+        $("#bottomClose").click(function(){
+            $("#bottomNav").animate({
+                opacity: "hide"
+            }, "slow");
+        });
+    });
+</script>
+
+</body>
+
+<div id="bottomNav">
+    <button id="bottomClose" type="button" class="btn applink-close">
+        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+    </button>
+</div>
+
+</html>

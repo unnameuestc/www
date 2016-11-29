@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>管理文章</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+
+<div class="frame-header">
+    <span>管理文章</span>
+    <button id="addPage" class="btn btn-success" style="margin-left: 20px">添加</button>
+    <span id="pageCnt" style="padding-top: 6px; margin-left: 10px; font-size: 16px; float: left;"></span>
+</div>
+
+<span id="pageNum" currpage="1" style="padding-top: 6px; margin-left: 20px; font-size: 16px; float: left;"></span>
+
+<div style="width: 80%; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+
+    <table class="table" id="pageList" style="display: none;">
+        <tr>
+            <td>ID</td>
+            <td>标题</td>
+            <td>评论家</td>
+            <td>创建日期</td>
+            <td>点击数</td>
+            <td>评论数</td>
+            <td>收藏数</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
+    <ul id="pager" class="pagination" style="display: none; margin-top: 0px;">
+        <li id="pre-page"><a href="#">上一页</a></li>
+        <li id="next-page"><a href="#">下一页</a></li>
+    </ul>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<script src="/js/api.js"></script>
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/popwin.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#addPage").click(function(){
+            popWin.onClose(function(){
+                reloadAll();
+            });
+            popWin.showWin("850","500","添加文章","add-page.html");
+        });
+
+        $("#pre-page > a").click(function(){
+            var currPage = Number($("#pageNum").attr("currpage"));
+            reloadPages(currPage - 1);
+        });
+
+        $("#next-page > a").click(function(){
+            var currPage = Number($("#pageNum").attr("currpage"));
+            reloadPages(currPage + 1);
+        });
+
+        function setPager(currPage){
+            var cnt = $('#pageCnt').attr("cnt");
+            $("#pageCnt").text("文章总数: " + cnt);
+            $("#pageNum").text("分页: " + currPage + "/" + Math.ceil(cnt / 10));
+
+            if(cnt > 10){
+                $("#pager").show();
+            }else{
+                $("#pager").hide();
+            }
+
+            if(cnt <= 0) {
+                $("#errStr").show();
+                $("#pageNum").hide();
+                $("#pageList").hide();
+                $("#errStr").text("暂时没有文章");
+            }else {
+                $("#errStr").hide();
+                $("#pageNum").show();
+                $("#pageList").show();
+            }
+        }
+
+        //获取数据
+        function reloadPages(page) {
+            if (page <= 0) {
+                return;
+            }
+
+            var cnt = $('#pageCnt').attr("cnt");
+            if (typeof(cnt) != "undefined") {
+                var pageCnt = Math.ceil(cnt / 10);
+                if (page > pageCnt) {
+                    return;
+                }
+                $("#pageNum").text("分页: " + page + "/" + pageCnt);
+            }
+
+            $("#pageNum").attr("currpage", page);
+
+            //重置table
+            $("#pageList").html("<tr><td>ID</td>"
+                    + "<td>标题</td>"
+                    + "<td>评论家</td>"
+                    + "<td>创建日期</td>"
+                    + "<td>评论数</td>"
+                    + "<td>收藏数</td>"
+                    + "<td>点击数</td>"
+                    + "<td></td>"
+                    + "<td></td>"
+                    + "<td>设为轮播图</td>"
+                    + "<td></td></tr>");
+
+            page_getPages(page,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取文章列表失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            $('#pageCnt').attr("cnt", json.result.allCnt);
+                            setPager(json.result.page);
+
+                            var rows = "";
+                            for(i = 0; i < json.result.cnt; i++){
+                                var pageObj = json.result.pages[i];
+                                rows += "<tr><td>"
+                                        + pageObj.id + "</td><td>"
+                                        + "<a class=\"showPage\" href=\"#\" pid=\"" + pageObj.id + "\">" + pageObj.title.substr(0, 15) + "</a>" + "</td><td>"
+                                        + pageObj.userNickName + "</td><td>"
+                                        + pageObj.createTime + "</td><td>"
+                                        + pageObj.click + "</td><td>"
+                                        + pageObj.commentCnt + "</td><td>"
+                                        + pageObj.favorCnt + "</td><td>"
+                                        + "<a class=\"editPage\" href=\"#\" pid=\"" + pageObj.id + "\">编辑</a>" + "</td><td>"
+                                        + "<a class=\"delPage\" href=\"#\" pid=\"" + pageObj.id + "\">删除</a>" + "</td><td>"
+                                        + "<input type=\"button\" value=\"首页\" class=\"isHomeBanner\" pid=\"" + pageObj.id + "\"/>" + "</td></tr>";
+                            }
+                            $('#pageList').append(rows);
+
+                            $(".showPage").click(function(){
+                                var query = $.query.set("pageid", $(this).attr("pid")).toString();
+                                popWin.showWin("850","500","预览文章","show-page.html" + query);
+                            });
+
+                            $(".editPage").click(function(){
+                                var query = $.query.set("pageid", $(this).attr("pid")).toString();
+                                popWin.onClose(function(){
+                                    reloadAll($('#artType').val());
+                                });
+                                popWin.showWin("850","500","编辑文章","add-page.html" + query);
+                            });
+
+                            $(".delPage").click(function(){
+                                var pid = $(this).attr("pid");
+                                swal({
+                                            title: "确定删除?",
+                                            text: "是否删除该文章？，删除后不可恢复!",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#DD6B55",
+                                            cancelButtonText: "取消",
+                                            confirmButtonText: "确定删除",
+                                            closeOnConfirm: false
+                                        },
+                                        function() {
+                                            page_delPage(
+                                                    pid,
+                                                    function(XMLHttpRequest, textStatus, errorThrown) {
+                                                        swal("出错", "文章删除失败, 请重试.", "error");
+                                                        fixSwalCss();
+                                                    },
+                                                    function(json){
+                                                        if(json.invoke){
+                                                            swal("已删除!", "文章已删除.", "success");
+                                                            fixSwalCss();
+
+                                                            //重新加载
+                                                            reloadAll();
+                                                        }else {
+                                                            swal("出错", "文章删除失败: " + json.error, "error");
+                                                            fixSwalCss();
+                                                        }
+                                                    }
+                                            );
+                                        });
+                                fixSwalCss();
+                            });
+
+                            $(".isHomeBanner").click(function(){
+                                var pid = $(this).attr("pid");
+                                swal({
+                                    title: "添加为首页轮播图？",
+                                    type: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#DD6B55",
+                                    cancelButtonText: "取消",
+                                    confirmButtonText: "确定添加",
+                                    closeOnConfirm: false
+                                    },
+                                    function(){
+                                        //得到信息
+                                        page_getPageInfo(
+                                                pid,
+                                                function(XMLHttpRequest, textStatus, errorThrown){
+                                                    swal("出错", "获取艺术品信息失败,请重试!", "error");
+                                                    fixSwalCss();
+                                                },
+                                                function(json){
+                                                    if(json.invoke) {
+                                                        var typeId = 3;  //typeid
+                                                        var id = json.result.page.id;  //targetid
+                                                        var title = json.result.page.title;  //description
+                                                        var picUrl = "0";  //picurl
+
+                                                        alert("typeId:" + typeId + "id:" + id + "title:" + title + "picUrl:" + picUrl);
+
+                                                        banner_addHomeBanner(
+                                                                typeId,
+                                                                id,
+                                                                title,
+                                                                picUrl,
+                                                                function (XMLHttpRequest, textStatus, errorThrown) {
+                                                                    swal("出错", "轮播图添加失败！", "error");
+                                                                    fixSwalCss();
+                                                                },
+                                                                function (json) {
+                                                                    if(json.invoke) {
+                                                                        swal("已添加!", "轮播图已添加.", "success");
+                                                                        fixSwalCss();
+                                                                    }else{
+                                                                        swal("出错", "轮播图添加失败: 数据库操作出错！", "error");
+                                                                        fixSwalCss();
+                                                                    }
+                                                                }
+                                                        );
+                                                    }else{
+                                                        swal("出错", "轮播图添加失败: " + json.error, "error");
+                                                        fixSwalCss();
+                                                    }
+                                                }
+                                        );
+                                    });
+                                fixSwalCss();
+                            });
+
+                        }else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取文章列表失败!");
+                        }
+                    }
+            );
+        }
+
+        function reloadAll(){
+            reloadPages(1);
+        }
+
+        reloadAll();
+    });
+</script>
+
+</body>
+
+
+</html>

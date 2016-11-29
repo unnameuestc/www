@@ -1,0 +1,159 @@
+body {
+  padding-top: 50px;
+}
+
+body {
+    background-image:url(text.txt); /* for IE6 */
+    background-attachment:fixed;
+}
+
+#bottomNav {
+    display: none;
+    background-color:#096;
+    z-index:999;
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    height: 50px;
+    _position:absolute; /* for IE6 */
+    _top: expression(documentElement.scrollTop + documentElement.clientHeight-this.offsetHeight); /* for IE6 */
+    overflow:visible;
+}
+
+.frame-body {
+    padding-top: 0px;
+    min-width: 800px;
+}
+
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin .form-signin-heading,
+.form-signin .checkbox {
+  margin-bottom: 10px;
+}
+.form-signin .checkbox {
+  font-weight: normal;
+}
+.form-signin .form-control {
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+  margin-top: 10px;
+}
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+#errStr {
+  margin-top: 20px;
+  font-size: 16px;
+}
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+.navbar-fixed-top {
+    border-bottom: 1px solid #333;
+}
+
+.sidebar {
+    position: fixed;
+    top: 50px;
+    width: 150px;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    padding: 25px 20px 20px;
+    overflow-x: hidden;
+    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    background-color: #222;
+}
+
+/* Sidebar navigation */
+.nav-sidebar {
+  margin-right: -21px; /* 20px padding + 1px border */
+  margin-bottom: 10px;
+  margin-left: -20px;
+}
+
+.nav-sidebar > li > a {
+  padding-right: 20px;
+  padding-left: 20px;
+  font-size: 18px;
+  color: #888;
+}
+.nav-sidebar > .active > a,
+.nav-sidebar > .active > a:hover,
+.nav-sidebar > .active > a:focus {
+  color: #000;
+  background-color: #fff;
+}
+
+/*
+ * Main content
+ */
+
+.main {
+  margin-left: 150px;
+}
+
+.main .page-header {
+  margin-top: 0;
+}
+
+#main-frame {
+  padding-left: 20px;
+}
+
+.frame-header {
+    text-align: center;
+    padding: 25px 10px 5px;
+    font-size: 28px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.art-types > ul {
+    min-width: 80px;
+}
+
+
+.art-img-div {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.art-img {
+    max-width: 470px;
+    max-height: 200px;
+}
+
+.applink-close {
+    height: 50px;
+    float: right;
+    background-color:#096;
+    border: none;
+}

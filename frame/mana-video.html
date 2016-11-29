@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>管理视频</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<div class="frame-header">
+    <span>管理视频</span>
+    <button id="addVideo" class="btn btn-success" style="margin-left: 20px">添加</button>
+    <select class="form-control" id="videoType" style="max-width: 100px; float: left;"></select>
+    <span id="videoCnt" style="padding-top: 6px; margin-left: 20px; font-size: 16px; float: left;"></span>
+</div>
+
+<span id="videoPage" currpage="1" style="padding-top: 6px; margin-left: 20px; font-size: 16px; float: left;"></span>
+
+<div style="width: 80%; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+
+    <table class="table" id="videoList" style="display: none;">
+        <tr>
+            <td>ID</td>
+            <td>标题</td>
+            <td>艺术家</td>
+            <td>创建日期</td>
+            <td>评论数</td>
+            <td>收藏数</td>
+
+            <td>点击数</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
+    <ul id="pager" class="pagination" style="display: none; margin-top: 0px;">
+        <li id="pre-page"><a href="#">上一页</a></li>
+        <li id="next-page"><a href="#">下一页</a></li>
+    </ul>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<script src="/js/api.js"></script>
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/popwin.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#addVideo").click(function(){
+            popWin.onClose(function(){
+                reloadAll($('#videoType').val());
+            });
+            popWin.showWin("850","500","添加视频","add-video.html");
+        });
+
+        $('#videoType').bind("input propertychange", function() {
+            initPager();
+        });
+
+        $("#pre-page > a").click(function(){
+            var typeId = $('#videoType').val();
+            var currPage = Number($("#videoPage").attr("currpage"));
+            reloadVideos(typeId, currPage - 1);
+        });
+
+        $("#next-page > a").click(function(){
+            var typeId = $('#videoType').val();
+            var currPage = Number($("#videoPage").attr("currpage"));
+            reloadVideos(typeId, currPage + 1);
+        });
+
+        function initPager(){
+            var cnt = $('#videoType').find("option:selected").attr("cnt");
+            $("#videoCnt").text("视频个数: " + cnt);
+            $("#videoPage").text("分页: 1/" + Math.ceil(cnt / 10));
+
+            if(cnt > 10){
+                $("#pager").show();
+            }else{
+                $("#pager").hide();
+            }
+
+            if(cnt <= 0) {
+                $("#errStr").show();
+                $("#videoPage").hide();
+                $("#videoList").hide();
+                $("#errStr").text("该分类没有视频");
+            }else {
+                $("#errStr").hide();
+                $("#videoPage").show();
+                $("#videoList").show();
+                reloadVideos($("#videoType").val(), 1);
+            }
+        }
+
+        function reloadVideos(typeId, page){
+            var cnt = $('#videoType').find("option:selected").attr("cnt");
+            var pageCnt = Math.ceil(cnt / 10);
+
+            if(page <= 0){
+                return;
+            }
+
+            if(page > pageCnt){
+                return;
+            }
+
+            $("#videoPage").text("分页: " + page + "/" + pageCnt);
+            $("#videoPage").attr("currpage", page);
+
+            //重置table
+            $("#videoList").html("<tr><td>ID</td>"
+                    + "<td>标题</td>"
+                    + "<td>艺术家</td>"
+                    + "<td>创建日期</td>"
+                    + "<td>评论数</td>"
+                    + "<td>收藏数</td>"
+                    + "<td>点击数</td>"
+                    + "<td></td>"
+                    + "<td></td>"
+                    + "<td></td>"
+                    + "<td>设为轮播图</td>"
+                    + "<td></td></tr>");
+
+            video_getVideos(typeId, page,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取视频列表失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            var rows = "";
+                            for(i = 0; i < json.result.cnt; i++){
+                                var videoObj = json.result.videos[i];
+                                rows += "<tr><td>"
+                                        + videoObj.id + "</td><td>"
+                                        + "<a class=\"showVideo\" href=\"#\" vid=\"" + videoObj.id + "\">" + videoObj.title + "</a>" + "</td><td>"
+                                        + videoObj.userNickName + "</td><td>"
+                                        + videoObj.createTime + "</td><td>"
+                                        + videoObj.commentCnt + "</td><td>"
+                                        + videoObj.favorCnt + "</td><td>"
+                                        + videoObj.click + "</td><td>"
+                                        + "<a class=\"editVideo\" href=\"#\" vid=\"" + videoObj.id + "\">编辑</a>" + "</td><td>"
+                                        + "<a class=\"delVideo\" href=\"#\" vid=\"" + videoObj.id + "\">删除</a>" + "</td><td>"
+                                        + "<a class=\"uploadVideo\" href=\"#\" vid=\"" + videoObj.id + "\">上传视频</a>" + "</td><td>"
+//                                        + "<input type=\"button\" href=\"#\" value=\"上传视频\" class=\"uploadVideo\" vid=\"" + videoObj.id + "\"/>" + "</td><td>"
+                                        + "<input type=\"button\" value=\"首页\" class=\"isHomeBanner\" vid=\"" + videoObj.id + "\"/>" + "</td></tr>";
+                            }
+                            $('#videoList').append(rows);
+
+                            $(".showVideo").click(function(){
+                                var query = $.query.set("videoid", $(this).attr("vid")).toString();
+                                popWin.showWin("850","500","预览视频","show-video.html" + query);
+                            });
+
+                            $(".editVideo").click(function(){
+                                var query = $.query.set("videoid", $(this).attr("vid")).toString();
+                                popWin.onClose(function(){
+                                    reloadAll($('#videoType').val());
+                                });
+                                popWin.showWin("850","500","编辑视频","add-video.html" + query);
+                            });
+
+                            $(".delVideo").click(function(){
+                                var vid = $(this).attr("vid");
+                                swal({
+                                            title: "确定删除?",
+                                            text: "是否删除该视频，删除后不可恢复!",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#DD6B55",
+                                            cancelButtonText: "取消",
+                                            confirmButtonText: "确定删除",
+                                            closeOnConfirm: false
+                                        },
+                                        function() {
+                                            video_delVideo(
+                                                    vid,
+                                                    function(XMLHttpRequest, textStatus, errorThrown) {
+                                                        swal("出错", "视频删除失败, 请重试.", "error");
+                                                        fixSwalCss();
+                                                    },
+                                                    function(json){
+                                                        if(json.invoke){
+                                                            swal("已删除!", "视频已删除.", "success");
+                                                            fixSwalCss();
+
+                                                            //重新加载
+                                                            reloadAll($('#videoType').val());
+                                                        }else {
+                                                            swal("出错", "视频删除失败: " + json.error, "error");
+                                                            fixSwalCss();
+                                                        }
+                                                    }
+                                            );
+                                });
+                                fixSwalCss();
+                            });
+
+                            $(".uploadVideo").click(function(){
+                                var query = $.query.set("videoid", $(this).attr("vid")).toString();
+                                popWin.showWin("850","500","视频上传","upload-video.html" + query);
+                            });
+
+                            $(".isHomeBanner").click(function(){
+                                var vid = $(this).attr("vid");
+                                swal({
+                                        title: "添加为首页轮播图？",
+                                        type: "warning",
+                                        showCancelButton: true,
+                                        confirmButtonColor: "#DD6B55",
+                                        cancelButtonText: "取消",
+                                        confirmButtonText: "确定添加",
+                                        closeOnConfirm: false
+                                    },
+                                    function(){
+                                        //得到信息
+                                        video_getVideoInfo(
+                                                vid,
+                                                function(XMLHttpRequest, textStatus, errorThrown){
+                                                    swal("出错", "获取视频信息失败,请重试!", "error");
+                                                    fixSwalCss();
+                                                },
+                                                function(json){
+                                                    if(json.invoke) {
+                                                        //var tradeState = json.result.art.tradeState;  //name
+                                                        var typeId = 1;  //typeid
+                                                        var id = json.result.video.id;  //targetid
+                                                        var title = json.result.video.title;  //description
+                                                        //var createTime = json.result.art.createTime;
+                                                        var picUrl = json.result.video.picUrl;  //picurl
+
+                                                        //alert("视频信息：" + typeId + " " + id + " " + title + " " + picUrl);
+
+                                                        banner_addHomeBanner(
+                                                                typeId,
+                                                                id,
+                                                                title,
+                                                                picUrl,
+                                                                function (XMLHttpRequest, textStatus, errorThrown) {
+                                                                    swal("出错", "轮播图添加失败！", "error");
+                                                                    fixSwalCss();
+                                                                },
+                                                                function (json) {
+                                                                    if(json.invoke) {
+                                                                        swal("已添加!", "轮播图已添加.", "success");
+                                                                        fixSwalCss();
+                                                                    }else{
+                                                                        swal("出错", "轮播图添加失败: 数据库操作出错！", "error");
+                                                                        fixSwalCss();
+                                                                    }
+                                                                }
+                                                        );
+                                                    }else{
+                                                        swal("出错", "轮播图添加失败: " + json.error, "error");
+                                                        fixSwalCss();
+                                                    }
+                                                }
+                                        );
+                                    });
+                                fixSwalCss();
+                            });
+                        }else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取视频列表失败!");
+                        }
+                    }
+            );
+        }
+
+        function reloadAll(typeId){
+            art_getArtTypes(
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取视频分类失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            var options = "";
+                            for(i = 0; i < json.result.cnt; i++){
+                                options += "<option value='"
+                                        + json.result.types[i].id
+                                        + "' "
+                                        + "cnt='"
+                                        + json.result.types[i].videoCnt
+                                        + "'>"
+                                        + json.result.types[i].description_cn
+                                        + "</option>";
+                            }
+                            $('#videoType').html(options);
+                            if(typeId != null){
+                                $('#videoType').val(typeId);
+                            }
+                            initPager();
+                        }else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取视频分类失败!");
+                        }
+                    }
+            );
+        }
+
+        reloadAll(null);
+    });
+</script>
+
+</body>
+
+</html>

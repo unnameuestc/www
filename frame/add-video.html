@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>添加视频</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<p class="frame-header">添加视频</p>
+
+<div style="width: 550px; margin-left: auto; margin-right: auto; padding-top: 30px;  margin-bottom: 30px;">
+<div class="panel panel-default">
+    <div class="panel-body" style="padding-top: 30px;">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label for="inputType" class="col-sm-2 control-label">分类</label>
+                <div class="col-sm-10">
+                    <select class="form-control" id="inputType">
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputUser" class="col-sm-2 control-label">艺术家（用户名）</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputUser" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputTitle" class="col-sm-2 control-label">标题</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputTitle" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputDes" class="col-sm-2 control-label">简介</label>
+                <div class="col-sm-10">
+                    <textarea rows="3" class="form-control" id="inputDes" required></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputPicFile" class="col-sm-2 control-label">封面图片</label>
+                <div class="col-sm-10">
+                    <input type="file" class="form-control" id="inputPicFile">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputVideo" class="col-sm-2 control-label">视频链接</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputVideo" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button id="doAdd" type="submit" class="btn btn-primary" style="min-width: 135px;">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+      art_getArtTypes(
+              function(XMLHttpRequest, textStatus, errorThrown) {
+                  $("#errStr").show();
+                  $("#errStr").text("获取视频分类失败!");
+              },
+              function(json){
+                  if(json.invoke){
+                      var options = "";
+                      for(i = 0; i < json.result.cnt; i++){
+                          options += "<option value='"
+                                  + json.result.types[i].id
+                                  + "'>"
+                                  + json.result.types[i].description_cn
+                                  + "</option>";
+                      }
+                      $('#inputType').html(options);
+                  }else {
+                      $("#errStr").show();
+                      $("#errStr").text("获取视频分类失败!");
+                  }
+              }
+      );
+
+        //出错
+        function showError(err){
+            $("#doAdd").attr("disabled", false);
+            $("#doAdd").text("提交");
+            $("#errStr").show();
+            $("#errStr").text(err);
+        }
+
+        //上传图片
+        function uploadImage(videoId, userId){
+            $("#doAdd").text("正在上传图片...");
+            upladFile("inputPicFile", function(result){
+                var json = jQuery.parseJSON(result);
+                if(json.isOk){
+                    submitAll(videoId, userId, json.msg);
+                }else{
+                    showError(json.msg);
+                }
+            });
+        }
+
+        //提交
+        function submitAll(videoId, userId, imgPath){
+            $("#doAdd").text("正在提交数据...");
+            if(!isNull(videoId)){
+                video_editVideo(
+                        videoId,
+                        $("#inputType").val(),
+                        userId,
+                        $("#inputTitle").val(),
+                        $("#inputVideo").val(),
+                        imgPath,
+                        $("#inputDes").val(),
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            showError("提交数据失败!");
+                        },
+                        function (json) {
+                            if (json.invoke) {
+                                var query = $.query
+                                        .set("videoid", json.result.video.id)
+                                        .set("backurl", "add-video.html" + $.query.set("videoid", videoId).toString())
+                                        .toString();
+                                self.location = "show-video.html" + query;
+                            } else {
+                                showError("提交数据失败: " + json.error);
+                            }
+                        }
+                );
+            }else {
+                video_addVideo(
+                        $("#inputType").val(),
+                        userId,
+                        $("#inputTitle").val(),
+                        $("#inputVideo").val(),
+                        imgPath,
+                        $("#inputDes").val(),
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            showError("提交数据失败!");
+                        },
+                        function (json) {
+                            if (json.invoke) {
+                                var query = $.query
+                                        .set("videoid", json.result.video.id)
+                                        .set("backurl", "add-video.html")
+                                        .toString();
+                                self.location = "show-video.html" + query;
+                            } else {
+                                showError("提交数据失败: " + json.error);
+                            }
+                        }
+                );
+            }
+        }
+
+        var video_id = $.query.get("videoid");
+        if(!isNull(video_id)){
+            $(".frame-header").text("修改视频");
+            $(document).attr("title", "修改视频");
+            video_getVideoInfo(video_id,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        showError("获取视频信息失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            //分类、艺术家、标题、视频地址
+                            $("#inputType").val(json.result.video.typeId);
+                            $("#inputUser").val(json.result.video.userName);
+                            $("#inputTitle").val(json.result.video.title);
+                            $("#inputDes").val(json.result.video.description);
+                            $("#inputVideo").val(json.result.video.videoUrl);
+                        }else {
+                            showError("获取视频信息失败: " + json.error);
+                        }
+                    }
+            );
+        }
+
+        $("#doAdd").click(function(){
+            if(isNull(video_id) && isNull($("#inputPicFile").val())){
+                showError("请选择封面图片");
+                return;
+            }
+
+            $("#doAdd").attr("disabled", true);
+            $("#doAdd").text("正在提交...");
+            $("#errStr").hide();
+
+            //获取用户id
+            $("#doAdd").text("正在检查艺术家...");
+
+            if(isNull($("#inputUser").val())){
+                showError("艺术家为空!");
+                return;
+            }
+
+            user_getInfo(
+                    null,
+                    $("#inputUser").val(),
+                    null,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        showError("检查艺术家失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            var userId = json.result.user.id;
+                            if(isNull($("#inputPicFile").val())){
+                                submitAll(video_id, userId, null);
+                            }else {
+                                uploadImage(video_id, userId);
+                            }
+                        }else {
+                            showError("检查艺术家失败: " + json.error);
+                        }
+                    }
+            );
+        });
+    });
+</script>
+
+</body>
+
+</html>

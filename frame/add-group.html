@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>添加分组</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<p class="frame-header">添加艺术品分组</p>
+
+<div style="width: 550px; margin-left: auto; margin-right: auto; padding-top: 30px;  margin-bottom: 30px;">
+<div class="panel panel-default">
+    <div class="panel-body" style="padding-top: 30px;">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label for="inputUser" class="col-sm-2 control-label">艺术家</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputUser" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputName" class="col-sm-2 control-label">分组名</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputName" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputDes" class="col-sm-2 control-label">简介</label>
+                <div class="col-sm-10">
+                    <textarea rows="5" class="form-control" id="inputDes" required></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button id="doAdd" type="submit" class="btn btn-primary" style="min-width: 135px;">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        //出错
+        function showError(err){
+            $("#doAdd").attr("disabled", false);
+            $("#doAdd").text("提交");
+            $("#errStr").show();
+            $("#errStr").text(err);
+        }
+
+        //提交
+        function submitAll(groupId, userId){
+            $("#doAdd").text("正在提交数据...");
+            if(!isNull(groupId)){
+                art_editGroup(
+                        groupId,
+                        $("#inputName").val(),
+                        $("#inputDes").val(),
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            showError("提交数据失败!");
+                        },
+                        function (json) {
+                            if (json.invoke) {
+                                var query = $.query
+                                        .set("groupid", json.result.group.id)
+                                        .set("backurl", "add-group.html" + $.query.set("groupid", groupId).toString())
+                                        .toString();
+                                self.location = "show-group.html" + query;
+                            } else {
+                                showError("提交数据失败: " + json.error);
+                            }
+                        }
+                );
+            }else {
+                art_addGroup(
+                        userId,
+                        $("#inputName").val(),
+                        $("#inputDes").val(),
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            showError("提交数据失败!");
+                        },
+                        function (json) {
+                            if (json.invoke) {
+                                var query = $.query
+                                        .set("groupid", json.result.group.id)
+                                        .set("backurl", "add-group.html")
+                                        .toString();
+                                self.location = "show-group.html" + query;
+                            } else {
+                                showError("提交数据失败: " + json.error);
+                            }
+                        }
+                );
+            }
+        }
+
+        var group_id = $.query.get("groupid");
+        if(!isNull(group_id)){
+            $(".frame-header").text("修改分组");
+            $(document).attr("title", "修改分组");
+            art_getGroup(null, group_id,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        showError("获取分组信息失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            $("#inputUser").val(json.result.group.userName);
+                            $("#inputName").val(json.result.group.name);
+                            $("#inputDes").val(json.result.group.des);
+
+                            $("#inputUser").attr("disabled", true);
+                        }else {
+                            showError("获取分组信息失败: " + json.error);
+                        }
+                    }
+            );
+        }else{
+            $("#inputUser").attr("disabled", false);
+        }
+
+        $("#doAdd").click(function(){
+            $("#doAdd").attr("disabled", true);
+            $("#doAdd").text("正在提交...");
+            $("#errStr").hide();
+
+            //获取用户id
+            $("#doAdd").text("正在检查艺术家...");
+
+            if(isNull($("#inputUser").val())){
+                showError("艺术家为空!");
+                return;
+            }
+
+            user_getInfo(
+                    null,
+                    $("#inputUser").val(),
+                    null,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        showError("检查艺术家失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            submitAll(group_id, json.result.user.id);
+                        }else {
+                            showError("检查艺术家失败: " + json.error);
+                        }
+                    }
+            );
+        });
+    });
+</script>
+
+</body>
+
+</html>

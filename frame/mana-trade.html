@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>管理订单</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<div class="frame-header">
+    <span>管理订单</span>
+    <button id="editTreaty" class="btn btn-success" style="margin-left: 20px">编辑订购协议</button>
+</div>
+
+<span id="tradePage" currpage="1" style="padding-top: 6px; margin-left: 20px; font-size: 16px; float: left;"></span>
+
+<div style="width: 80%; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+
+    <table class="table" id="tradeList" style="display: none;">
+        <tr>
+            <td>ID</td>
+            <td>艺术品id</td>
+            <td>购买者id</td>
+            <td>收件人</td>
+            <td>联系方式</td>
+            <td>创建时间</td>
+            <td>结束时间</td>
+            <td>订单状态</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <ul id="pager" class="pagination" style="display: none; margin-top: 0px;">
+        <li id="pre-page"><a href="#">上一页</a></li>
+        <li id="next-page"><a href="#">下一页</a></li>
+    </ul>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<script src="/js/api.js"></script>
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/popwin.js"></script>
+
+<script type="text/javascript">
+
+    function tradeState(stateId){
+        switch (stateId){
+            case 0: return "不可交易";
+            case 1: return "可交易";
+            case 2: return "交易中";
+            case 3: return "交易完成";
+            case 4: return "交易失败";
+        }
+    }
+
+    $(document).ready(function(){
+        $("#editTreaty").click(function(){
+            popWin.showWin("850","500","编辑订购协议","edit-treaty.html");
+        });
+        
+        $("#pre-page > a").click(function(){
+            var currPage = Number($("#tradePage").attr("currpage"));
+            reloadTrades(currPage - 1);
+        });
+
+        $("#next-page > a").click(function(){
+            var currPage = Number($("#tradePage").attr("currpage"));
+            reloadTrades(currPage + 1);
+        });
+
+        function reloadTrades(page){
+            if(page <= 0){
+                return;
+            }
+
+            if(page > $('#pager').attr("cnt")){
+                return;
+            }
+
+            //重置table
+            $("#tradeList").html("<tr><td>ID</td>"
+                    + "<td>艺术品id</td>"
+                    + "<td>购买者id</td>"
+                    + "<td>收件人</td>"
+                    + "<td>联系方式</td>"
+                    + "<td>创建时间</td>"
+                    + "<td>结束时间</td>"
+                    + "<td>订单状态</td>"
+                    + "<td></td></tr>");
+
+            trade_getAllTrades(page,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取订单列表失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            var pageCnt = Math.ceil(json.result.allCnt / 10);
+                            $("#tradePage").text("分页: " + page + "/" + pageCnt);
+                            $("#tradePage").attr("currpage", page);
+                            $('#pager').attr("cnt", pageCnt);
+                            if(json.result.allCnt > 10){
+                                $("#pager").show();
+                            }else{
+                                $("#pager").hide();
+                            }
+
+                            if(json.result.cnt <= 0) {
+                                $("#errStr").show();
+                                $("#tradePage").hide();
+                                $("#tradeList").hide();
+                                $("#errStr").text("没有订单");
+                            }else {
+                                $("#errStr").hide();
+                                $("#tradePage").show();
+                                $("#tradeList").show();
+                            }
+
+                            var rows = "";
+                            for(i = 0; i < json.result.cnt; i++){
+                                var tradeObj = json.result.trades[i];
+                                rows += "<tr><td>"
+                                        + tradeObj.id + "</td><td>"
+                                        + "<a class=\"showArt\" href=\"#\" aid=\"" + tradeObj.artId + "\">" + tradeObj.artId + "</a></td><td>"
+                                        + tradeObj.userId + "</td><td>"
+                                        + tradeObj.recipient + "</td><td>"
+                                        + tradeObj.contact + "</td><td>"
+                                        + tradeObj.createTime + "</td><td>"
+                                        + (typeof(tradeObj.finishTime) == "undefined" ? "-" : tradeObj.finishTime) + "</td><td>"
+                                        + tradeState(tradeObj.state) + "</td><td>"
+                                        + "<a class=\"editTrade\" href=\"#\" tid=\"" + tradeObj.id + "\">修改</a>" + "</td></tr>"
+                            }
+                            $('#tradeList').append(rows);
+
+                            $(".showArt").click(function(){
+                                var query = $.query.set("artid", $(this).attr("aid")).toString();
+                                popWin.showWin("850","500","预览艺术品","show-art.html" + query);
+                            });
+
+                            $(".editTrade").click(function(){
+                                var query = $.query.set("tradeid", $(this).attr("tid")).toString();
+                                popWin.onClose(function(){
+                                    reloadTrades($("#tradePage").attr("currpage"));
+                                });
+                                popWin.showWin("850","500","修改订单","edit-trade.html" + query);
+                            });
+                        }else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取订单列表失败!");
+                        }
+                    }
+            );
+        }
+
+        reloadTrades(1);
+    });
+</script>
+
+</body>
+
+</html>

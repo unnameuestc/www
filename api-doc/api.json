@@ -1,0 +1,3044 @@
+﻿{
+    "swagger": "2.0",
+    "info": {
+        "description": "主尚移动文化馆 @bmi.uestc",
+        "version": "1.0.0",
+        "title": "MobileArt Service Api"
+    },
+    "host": "localhost:8081",
+    "basePath": "/",
+    "schemes": [
+        "http"
+    ],
+    "tags": [
+        {
+            "name": "user",
+            "description": "用户模块"
+        },
+        {
+            "name": "sms",
+            "description": "短信验证码模块"
+        },
+        {
+            "name": "video",
+            "description": "视频模块"
+        },
+        {
+            "name": "art",
+            "description": "艺术品模块"
+        },
+        {
+            "name": "page",
+            "description": "文章模块"
+        },
+        {
+            "name": "follow",
+            "description": "关注模块"
+        },
+        {
+            "name": "favor",
+            "description": "收藏模块"
+        },
+        {
+            "name": "comment",
+            "description": "评论模块"
+        },
+        {
+            "name": "banner",
+            "description": "轮播模块"
+        },
+        {
+    "name": "rank",
+    "description": "榜单模块"
+},
+        {
+    "name": "trade",
+    "description": "交易模块"
+},
+        {
+    "name": "other",
+    "description": "其它模块"
+}
+    ],
+    "paths": {
+        "/user/isUserExist": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "验证用户名和手机号是否已存在",
+                "description": "验证用户名和手机号是否已存在，可只验证一项",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "description": "用户名",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "phone",
+                        "description": "手机号",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/regUser": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "用户注册",
+                "description": "通过用户名、密码(加密后)、手机号进行注册，用户名不填则服务器自动生成",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "description": "用户名",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pwd",
+                        "description": "密码(加密后)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "phone",
+                        "description": "手机号",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/doLogin": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "用户登录",
+                "description": "通过用户名或手机号、密码(加密后)进行登录，返回授权Key",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "idstr",
+                        "description": "用户名或手机号",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pwd",
+                        "description": "密码(加密后)",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/doLogout": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "用户退出登录",
+                "description": "通过授权Key退出登录",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "授权Key",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/changePwd": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "用户修改密码",
+                "description": "通过授权key、需要新旧密码修改密码，注意密码是加密后的",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "授权Key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "oldpwd",
+                        "description": "旧密码(加密后)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pwd",
+                        "description": "新密码(加密后)",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/resetPwd": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "重置密码",
+                "description": "通过手机号重置密码，注意密码是加密后的",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "phone",
+                        "description": "手机号",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pwd",
+                        "description": "新密码(加密后)",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/changePhone": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "修改手机号",
+                "description": "通过授权Key修改手机号",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "授权Key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "phone",
+                        "description": "新手机号",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/changeName": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "修改用户名",
+                "description": "通过授权Key修改用户名",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "授权Key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "description": "新用户名",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/updateInfo": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "修改用户信息",
+                "description": "修改用户信息,不指定id则需要authKey(修改自己的信息)",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "授权Key",
+                        "required": false,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "id",
+                        "description": "目标用户id",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "nickname",
+                        "description": "昵称",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "avatarurl",
+                        "description": "头像地址",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "profile",
+                        "description": "个人简介",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/getInfo": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "获取用户信息",
+                "description": "通过授权Key获取用户信息，不指定id/name则获取自己的信息，优先级：id > name > authKey",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "id(他人)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "description": "用户名(他人)",
+                        "required": false,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "授权Key",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/getCertifyTypes": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "获取认证类型列表",
+                "description": "获取认证类型列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/user/certify": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "对用户进行认证",
+                "description": "多种认证类型用英文逗号隔开，如1,2",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "id",
+                        "description": "用户id",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "certifytypes",
+                        "description": "认证类型,多种认证类型用英文逗号隔开，如1,2",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/sms/sendCode": {
+            "get": {
+                "tags": [
+                    "sms"
+                ],
+                "summary": "发送短信验证码",
+                "description": "发送短信验证码",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "phone",
+                        "description": "手机号",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/sms/verifyCode": {
+            "get": {
+                "tags": [
+                    "sms"
+                ],
+                "summary": "发送短信验证码",
+                "description": "发送短信验证码",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "phone",
+                        "description": "手机号",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "code",
+                        "description": "验证码",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/follow/addFollow": {
+            "get": {
+                "tags": [
+                    "follow"
+                ],
+                "summary": "添加关注",
+                "description": "添加关注（当前用户关注他人）",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "授权Key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "被关注用户id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/follow/delFollow": {
+            "get": {
+                "tags": [
+                    "follow"
+                ],
+                "summary": "取消关注",
+                "description": "取消关注（当前用户取消关注他人）",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "授权Key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "被取消关注用户id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/follow/isFollow": {
+            "get": {
+                "tags": [
+                    "follow"
+                ],
+                "summary": "是否关注",
+                "description": "是否关注（当前用户是否关注他人）",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "userid",
+                        "description": "用户id(英文逗号分隔)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "被关注用户id(英文逗号分隔)",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/follow/getFollowList": {
+            "get": {
+                "tags": [
+                    "follow"
+                ],
+                "summary": "获取关注列表",
+                "description": "获取当前用户的关注列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "授权Key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/follow/getFansList": {
+            "get": {
+                "tags": [
+                    "follow"
+                ],
+                "summary": "获取粉丝列表",
+                "description": "获取用户的粉丝列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "userid",
+                        "description": "用户id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/video/getVideos": {
+            "get": {
+                "tags": [
+                    "video"
+                ],
+                "summary": "获取视频列表",
+                "description": "获取“演艺”中某个分类的视频列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "分类id",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "usernick",
+                        "description": "用户昵称，若指定则只搜索该用户的视频",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/video/addVideo": {
+            "get": {
+                "tags": [
+                    "video"
+                ],
+                "summary": "添加视频",
+                "description": "添加视频",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "分类id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "userid",
+                        "description": "所属用户id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "title",
+                        "description": "标题",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "description",
+                        "description": "简介",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "videourl",
+                        "description": "视频地址",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "picurl",
+                        "description": "封面图片地址",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/video/getVideoInfo": {
+            "get": {
+                "tags": [
+                    "video"
+                ],
+                "summary": "获取视频详情",
+                "description": "获取视频详情",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "视频id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/video/delVideo": {
+            "get": {
+                "tags": [
+                    "video"
+                ],
+                "summary": "删除视频",
+                "description": "删除视频",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "视频id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/video/editVideo": {
+            "get": {
+                "tags": [
+                    "video"
+                ],
+                "summary": "修改视频",
+                "description": "修改视频",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "视频id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "分类id",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "userid",
+                        "description": "所属用户id",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "title",
+                        "description": "标题",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "description",
+                        "description": "简介",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "videourl",
+                        "description": "视频地址",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "picurl",
+                        "description": "封面图片地址",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/video/addClick": {
+            "get": {
+                "tags": [
+                    "video"
+                ],
+                "summary": "视频点击量+1",
+                "description": "视频点击量+1",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "视频id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/video/addShare": {
+            "get": {
+                "tags": [
+                    "video"
+                ],
+                "summary": "分享量+1",
+                "description": "分享量+1",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "视频id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/getArtTypes": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "获取艺术品分类列表",
+                "description": "获取艺术品分类列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/getArtList": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "获取艺术品列表",
+                "description": "获取某个分类的艺术品列表(简洁信息)",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "分类id",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "usernick",
+                        "description": "用户昵称，若指定则只搜索该用户的艺术品",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "trade",
+                        "description": "是否只列出可交易的 false|true",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，默认每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/getUserArtGroup": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "获取用户分组的艺术品列表",
+                "description": "获取用户详情页中的分组的艺术品列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "userid",
+                        "description": "用户id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，默认每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/getArtInfo": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "获取艺术品详情",
+                "description": "获取艺术品详情（带图片列表）",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "艺术品id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/addArt": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "添加艺术品",
+                "description": "添加艺术品",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "分类id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "userid",
+                        "description": "所属用户id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "title",
+                        "description": "标题",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "content",
+                        "description": "内容简介",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "tradable",
+                        "description": "是否可交易 false|true",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "tradedes",
+                        "description": "交易信息",
+                        "required": false,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "groupid",
+                        "description": "分组id",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/editArt": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "修改艺术品",
+                "description": "修改艺术品",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "艺术品id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "分类id",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "userid",
+                        "description": "所属用户id",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "title",
+                        "description": "标题",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "content",
+                        "description": "内容简介",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "tradestate",
+                        "description": "交易状态(0:不可交易 1:可交易 2:交易中 3:交易完成 4:交易失败)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "tradedes",
+                        "description": "交易信息",
+                        "required": false,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "groupid",
+                        "description": "分组id",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/delArt": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "删除艺术品",
+                "description": "删除艺术品",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "艺术品id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/addArtImg": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "添加艺术品图片",
+                "description": "添加艺术品图片",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "artid",
+                        "description": "艺术品id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "url",
+                        "description": "图片url",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/delArtImg": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "删除艺术品图片",
+                "description": "删除艺术品图片",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "艺术品图片id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/addClick": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "艺术品点击量+1",
+                "description": "艺术品点击量+1",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "艺术品id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/addShare": {
+            "get": {
+                "tags": [
+                    "art"
+                ],
+                "summary": "分享数量+1",
+                "description": "分享数量+1",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "艺术品id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/art/addGroup": {
+    "get": {
+        "tags": [
+            "art"
+        ],
+        "summary": "添加分组",
+        "description": "添加艺术品分组",
+        "produces": [
+            "application/json"
+        ],
+        "parameters": [
+            {
+                "in": "query",
+                "name": "apikey",
+                "description": "ApiKey",
+                "required": true,
+                "type": "string"
+            },
+                                {
+                "in": "query",
+                "name": "userid",
+                "description": "用户id",
+                "required": true,
+                "type": "string"
+            },
+            {
+                "in": "query",
+                "name": "name",
+                "description": "分组名",
+                "required": true,
+                "type": "string"
+            },
+                                {
+                "in": "query",
+                "name": "des",
+                "description": "分组介绍",
+                "required": true,
+                "type": "string"
+            }
+        ]
+    }
+},
+        "/art/editGroup": {
+    "get": {
+        "tags": [
+            "art"
+        ],
+        "summary": "编辑分组",
+        "description": "编辑艺术品分组",
+        "produces": [
+            "application/json"
+        ],
+        "parameters": [
+            {
+                "in": "query",
+                "name": "apikey",
+                "description": "ApiKey",
+                "required": true,
+                "type": "string"
+            },
+                                {
+                "in": "query",
+                "name": "id",
+                "description": "分组id",
+                "required": true,
+                "type": "string"
+            },
+            {
+                "in": "query",
+                "name": "name",
+                "description": "分组名",
+                "required": false,
+                "type": "string"
+            },
+                                {
+                "in": "query",
+                "name": "des",
+                "description": "分组介绍",
+                "required": false,
+                "type": "string"
+            }
+        ]
+    }
+},
+        "/art/delGroup": {
+    "get": {
+        "tags": [
+            "art"
+        ],
+        "summary": "删除分组",
+        "description": "删除艺术品分组",
+        "produces": [
+            "application/json"
+        ],
+        "parameters": [
+            {
+                "in": "query",
+                "name": "apikey",
+                "description": "ApiKey",
+                "required": true,
+                "type": "string"
+            },
+                                {
+                "in": "query",
+                "name": "id",
+                "description": "分组id",
+                "required": true,
+                "type": "string"
+            }
+        ]
+    }
+},
+        "/art/getGroup": {
+    "get": {
+        "tags": [
+            "art"
+        ],
+        "summary": "获取用户的艺术品的所有分组或某个分组的信息",
+        "description": "获取用户艺术品的所有分组或某个分组的信息",
+        "produces": [
+            "application/json"
+        ],
+        "parameters": [
+            {
+                "in": "query",
+                "name": "apikey",
+                "description": "ApiKey",
+                "required": true,
+                "type": "string"
+            },
+                                {
+                "in": "query",
+                "name": "userid",
+                "description": "用户id",
+                "required": false,
+                "type": "string"
+            },
+                                {
+                "in": "query",
+                "name": "id",
+                "description": "分组id",
+                "required": false,
+                "type": "string"
+            }
+        ]
+    }
+},
+        "/page/getPages": {
+            "get": {
+                "tags": [
+                    "page"
+                ],
+                "summary": "获取文章列表",
+                "description": "获取文章列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "userid",
+                        "description": "用户id(若指定，则只返回该用户的文章)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/page/addPage": {
+            "get": {
+                "tags": [
+                    "page"
+                ],
+                "summary": "添加文章",
+                "description": "添加文章",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "userid",
+                        "description": "用户id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "title",
+                        "description": "标题",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "content",
+                        "description": "内容",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/page/getPageInfo": {
+            "get": {
+                "tags": [
+                    "page"
+                ],
+                "summary": "获取文章详情",
+                "description": "获取文章详情",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "文章id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/page/editPage": {
+            "get": {
+                "tags": [
+                    "page"
+                ],
+                "summary": "修改文章",
+                "description": "修改文章",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "文章id",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "userid",
+                        "description": "用户id",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "title",
+                        "description": "标题",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "content",
+                        "description": "内容",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/page/delPage": {
+            "get": {
+                "tags": [
+                    "page"
+                ],
+                "summary": "删除文章",
+                "description": "删除文章",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "文章id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/page/addClick": {
+            "get": {
+                "tags": [
+                    "page"
+                ],
+                "summary": "文章点击量+1",
+                "description": "文章点击量+1",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "文章id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/page/addShare": {
+            "get": {
+                "tags": [
+                    "page"
+                ],
+                "summary": "分享量+1",
+                "description": "分享量+1",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "文章id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/favor/getFavors": {
+            "get": {
+                "tags": [
+                    "favor"
+                ],
+                "summary": "获取用户的收藏列表",
+                "description": "获取用户的收藏列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "用户授权key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/favor/addFavor": {
+            "get": {
+                "tags": [
+                    "favor"
+                ],
+                "summary": "添加收藏",
+                "description": "添加收藏",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "用户授权key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "收藏类型id(1视频、2艺术品、3文章)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "收藏对象id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/favor/isFavor": {
+            "get": {
+                "tags": [
+                    "favor"
+                ],
+                "summary": "是否收藏",
+                "description": "是否收藏",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "userid",
+                        "description": "用户id(英文逗号分隔)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "收藏类型id(1视频、2艺术品、3文章)(英文逗号分隔)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "收藏对象id(英文逗号分隔)",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/favor/delFavor": {
+            "get": {
+                "tags": [
+                    "favor"
+                ],
+                "summary": "取消收藏",
+                "description": "取消收藏",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "用户授权key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "收藏类型id(1视频、2艺术品、3文章)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "收藏对象id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/comment/getComments": {
+            "get": {
+                "tags": [
+                    "comment"
+                ],
+                "summary": "获取评论列表",
+                "description": "获取评论列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "评论类型id(1视频、2艺术品、3文章)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "评论对象id",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/comment/getReplies": {
+            "get": {
+                "tags": [
+                    "comment"
+                ],
+                "summary": "获取回复列表",
+                "description": "获取回复列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "用户授权key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+
+        "/comment/unReadCnt": {
+            "get": {
+                "tags": [
+                    "comment"
+                ],
+                "summary": "获取当前登录用户未读评论总数",
+                "description": "获取当前登录用户未读评论总数",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "用户授权key",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/comment/getWork": {
+            "get": {
+                "tags": [
+                    "comment"
+                ],
+                "summary": "获取指定作品信息",
+                "description": "获取指定作品信息",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "用户授权key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "作品类型：1.视频 2.艺术品 3.文章",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "作品id",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+
+        "/comment/addComment": {
+            "get": {
+                "tags": [
+                    "comment"
+                ],
+                "summary": "添加评论",
+                "description": "添加评论",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "用户授权key",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "评论类型id(1视频、2艺术品、3文章)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "评论对象id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "fatherid",
+                        "description": "父级评论id(可以不填)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "content",
+                        "description": "评论内容",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/comment/delComment": {
+            "get": {
+                "tags": [
+                    "comment"
+                ],
+                "summary": "删除评论",
+                "description": "删除评论",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "评论id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/comment/markValid": {
+            "get": {
+                "tags": [
+                    "comment"
+                ],
+                "summary": "评论审核",
+                "description": "评论审核",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "评论id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "valid",
+                        "description": "是否通过(true false)",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/comment/markRead": {
+    "get": {
+        "tags": [
+            "comment"
+        ],
+        "summary": "设置评论已读",
+        "description": "设置评论已读",
+        "produces": [
+            "application/json"
+        ],
+        "parameters": [
+            {
+                "in": "query",
+                "name": "apikey",
+                "description": "ApiKey",
+                "required": true,
+                "type": "string"
+            },
+            {
+                "in": "query",
+                "name": "id",
+                "description": "评论id",
+                "required": true,
+                "type": "string"
+            },
+            {
+                "in": "query",
+                "name": "read",
+                "description": "是否已读(true false)",
+                "required": true,
+                "type": "string"
+            }
+        ]
+    }
+},
+        "/banner/getHomeBanner": {
+            "get": {
+                "tags": [
+                    "banner"
+                ],
+                "summary": "获取首页轮播",
+                "description": "获取首页轮播(视频、艺术品、文章)",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/banner/getTradeBanner": {
+            "get": {
+                "tags": [
+                    "banner"
+                ],
+                "summary": "获取“易艺”轮播",
+                "description": "获取“易艺”轮播(只有可交易的艺术品)",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/banner/addHomeBanner": {
+            "get": {
+                "tags": [
+                    "banner"
+                ],
+                "summary": "添加首页轮播",
+                "description": "添加首页轮播(视频、艺术品、文章)",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "类型id(视频1、艺术品2、文章3)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "对应的视频、艺术品或文章id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "description",
+                        "description": "简要描述",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "picurl",
+                        "description": "图片url",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/banner/addTradeBanner": {
+            "get": {
+                "tags": [
+                    "banner"
+                ],
+                "summary": "添加“易艺”轮播(只有可交易的艺术品)",
+                "description": "添加“易艺”轮播(只有可交易的艺术品)",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "对应的可交易艺术品id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "description",
+                        "description": "简要描述",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "picurl",
+                        "description": "图片url",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/banner/delBanner": {
+            "get": {
+                "tags": [
+                    "banner"
+                ],
+                "summary": "删除轮播图片",
+                "description": "删除轮播图片",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "轮播图片id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/rank/topClick": {
+    "get": {
+        "tags": [
+            "rank"
+        ],
+        "summary": "点击热门",
+        "description": "点击热门",
+        "produces": [
+            "application/json"
+        ],
+        "parameters": [
+            {
+                "in": "query",
+                "name": "apikey",
+                "description": "ApiKey",
+                "required": true,
+                "type": "string"
+            },
+            {
+                "in": "query",
+                "name": "size",
+                "description": "最大数量",
+                "required": false,
+                "type": "string"
+            }
+        ]
+    }
+},
+        "/rank/topComment": {
+    "get": {
+        "tags": [
+            "rank"
+        ],
+        "summary": "评论热门",
+        "description": "评论热门",
+        "produces": [
+            "application/json"
+        ],
+        "parameters": [
+            {
+                "in": "query",
+                "name": "apikey",
+                "description": "ApiKey",
+                "required": true,
+                "type": "string"
+            },
+            {
+                "in": "query",
+                "name": "size",
+                "description": "最大数量",
+                "required": false,
+                "type": "string"
+            }
+        ]
+    }
+},
+        "/rank/topCertifyUser": {
+    "get": {
+        "tags": [
+            "rank"
+        ],
+        "summary": "新认证用户",
+        "description": "新认证用户",
+        "produces": [
+            "application/json"
+        ],
+        "parameters": [
+            {
+                "in": "query",
+                "name": "apikey",
+                "description": "ApiKey",
+                "required": true,
+                "type": "string"
+            },
+            {
+                "in": "query",
+                "name": "size",
+                "description": "最大数量",
+                "required": false,
+                "type": "string"
+            }
+        ]
+    }
+},
+		"/trade/getTradeInfo": {
+            "get": {
+                "tags": [
+                    "trade"
+                ],
+                "summary": "获取订单信息",
+                "description": "获取订单信息",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "订单id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+		
+		"/trade/getMyTrades": {
+            "get": {
+                "tags": [
+                  "trade"
+                ],
+                "summary": "获取我的订单列表",
+                "description": "获取我的订单列表",
+                "produces": [
+                    "application/json"  
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "authkey",
+                        "description": "AuthKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+		
+        "/trade/addTrade": {
+            "get": {
+                "tags": [
+                    "trade"
+                ],
+                "summary": "新增订单",
+                "description": "新增艺术品订单",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "artid",
+                        "description": "艺术品id",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "userid",
+                        "description": "买家用户id",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "recipient",
+                        "description": "收件人",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "contact",
+                        "description": "联系方式",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "addr",
+                        "description": "收件地址",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/trade/editTrade": {
+            "get": {
+                "tags": [
+                    "trade"
+                ],
+                "summary": "修改订单",
+                "description": "修改艺术品订单",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "订单id",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "recipient",
+                        "description": "收件人",
+                        "required": false,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "contact",
+                        "description": "联系方式",
+                        "required": false,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "addr",
+                        "description": "收件地址",
+                        "required": false,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "state",
+                        "description": "订单状态(2:交易中 3:交易完成 4:交易失败)",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/trade/delTrade": {
+            "get": {
+                "tags": [
+                    "trade"
+                ],
+                "summary": "删除订单",
+                "description": "删除艺术品订单",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "订单id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/trade/getTreaty": {
+            "get": {
+                "tags": [
+                    "trade"
+                ],
+                "summary": "获取订购协议内容",
+                "description": "获取订购协议内容",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/other/search": {
+            "get": {
+                "tags": [
+                    "other"
+                ],
+                "summary": "全局搜索",
+                "description": "全局搜索(用户昵称、视频、艺术品、文章)",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "keyword",
+                        "description": "关键词",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/other/artSearch": {
+            "get": {
+                "tags": [
+                    "other"
+                ],
+                "summary": "艺术品搜索",
+                "description": "艺术品搜索(艺术品作者昵称、艺术品标题)",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "keyword",
+                        "description": "关键词(作者昵称、艺术品标题)",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "艺术品类型：1油画|2书法|3篆刻|4国画|5雕塑|6版画",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "trade",
+                        "description": "是否只列出可交易的,空或者false|true",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagenumber",
+                        "description": "分页序号(从1开始)，默认每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/other/addSuggest": {
+            "get": {
+                "tags": [
+                    "other"
+                ],
+                "summary": "添加意见反馈",
+                "description": "添加意见反馈",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "content",
+                        "description": "内容",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "contact",
+                        "description": "联系方式",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/other/getSuggests": {
+            "get": {
+                "tags": [
+                    "other"
+                ],
+                "summary": "获取意见反馈列表",
+                "description": "获取意见反馈列表",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "page",
+                        "description": "分页序号(从1开始)，每页10个",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "(分页)每页个数，不填则为10",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/other/getShareUrl": {
+            "get": {
+                "tags": [
+                    "other"
+                ],
+                "summary": "获取分享链接",
+                "description": "获取分享链接",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "apikey",
+                        "description": "ApiKey",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "typeid",
+                        "description": "类别id((1视频、2艺术品、3文章))",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "targetid",
+                        "description": "目标id",
+                        "required": true,
+                        "type": "string"
+                    },
+										{
+                        "in": "query",
+                        "name": "showlink",
+                        "description": "是否显示app下载链接(true|false)",
+                        "required": false,
+                        "type": "string"
+                    }
+                ]
+            }
+        }
+    }
+}

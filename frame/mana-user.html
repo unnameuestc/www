@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>管理用户</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<div class="frame-header">
+    <span>管理用户</span>
+</div>
+
+<span id="userPage" currpage="1" style="padding-top: 6px; margin-left: 20px; font-size: 16px; float: left;"></span>
+
+<div style="width: 80%; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+
+    <table class="table" id="userList" style="display: none;">
+        <tr>
+            <td>ID</td>
+            <td>头像</td>
+            <td>用户名</td>
+            <td>昵称</td>
+            <td>手机号</td>
+            <td>简介</td>
+            <td>关注</td>
+            <td>粉丝</td>
+            <td>认证类型</td>
+            <td>认证时间</td>
+            <td>注册时间</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <ul id="pager" class="pagination" style="display: none; margin-top: 0px;">
+        <li id="pre-page"><a href="#">上一页</a></li>
+        <li id="next-page"><a href="#">下一页</a></li>
+    </ul>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<script src="/js/api.js"></script>
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/popwin.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        
+        $("#pre-page > a").click(function(){
+            var currPage = Number($("#userPage").attr("currpage"));
+            reloadUsers(currPage - 1);
+        });
+
+        $("#next-page > a").click(function(){
+            var currPage = Number($("#userPage").attr("currpage"));
+            reloadUsers(currPage + 1);
+        });
+
+        function reloadUsers(page){
+            if(page <= 0){
+                return;
+            }
+
+            if(page > $('#pager').attr("cnt")){
+                return;
+            }
+
+            //重置table
+            $("#userList").html("<tr><td>ID</td>"
+                    + "<td>头像</td>"
+                    + "<td>用户名</td>"
+                    + "<td>昵称</td>"
+                    + "<td>手机号</td>"
+                    + "<td>简介</td>"
+                    + "<td>关注</td>"
+                    + "<td>粉丝</td>"
+                    + "<td>认证类型</td>"
+                    + "<td>认证时间</td>"
+                    + "<td>注册时间</td>"
+                    + "<td></td></tr>");
+
+            user_getAllUsers(page,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取用户列表失败!");
+                    },
+                    function(json) {
+                        if (json.invoke) {
+                            var pageCnt = Math.ceil(json.result.allCnt / 10);
+                            $("#userPage").text("分页: " + page + "/" + pageCnt);
+                            $("#userPage").attr("currpage", page);
+                            $('#pager').attr("cnt", pageCnt);
+                            if (json.result.allCnt > 10) {
+                                $("#pager").show();
+                            } else {
+                                $("#pager").hide();
+                            }
+
+                            if (json.result.cnt <= 0) {
+                                $("#errStr").show();
+                                $("#userPage").hide();
+                                $("#userList").hide();
+                                $("#errStr").text("没有用户");
+                            } else {
+                                $("#errStr").hide();
+                                $("#userPage").show();
+                                $("#userList").show();
+                            }
+
+                            var rows = "";
+                            for (i = 0; i < json.result.cnt; i++) {
+                                var userObj = json.result.users[i];
+                                rows += "<tr><td>"
+                                        + userObj.id + "</td><td>"
+                                        + "<img src=\"" + (typeof(userObj.avatarUrl) == "undefined" ? "/img/avatar-default.png" : userObj.avatarUrl)
+                                        + "\" width=\"35px\" height=\"35px\" class=\"img-circle\" style=\"border: 1px solid #ccc;\"></td><td>"
+                                        + userObj.name + "</td><td>"
+                                        + (typeof(userObj.nickName) == "undefined" ? "-" : userObj.nickName) + "</td><td>"
+                                        + userObj.phone + "</td><td>";
+
+                                if(typeof(userObj.profile) == "undefined"){
+                                    rows += "-</td><td>";
+                                }else{
+                                    rows += "<a href=\"#\" onclick=\"javascript:justShowString('" + userObj.profile+"')\" \">" + userObj.profile.substr(0, 5) + "</a></td><td>";
+                                }
+
+                                rows += userObj.follow + "</td><td>"
+                                        + userObj.fans + "</td><td>"
+                                        + (typeof(userObj.certifyTypes) == "undefined" ? "-" : userObj.certifyTypes) + "</td><td>"
+                                        + (typeof(userObj.certifyTime) == "undefined" ? "-" : userObj.certifyTime) + "</td><td>"
+                                        + userObj.createTime + "</td><td>"
+                                        + "<a class=\"editUser\" href=\"#\" uid=\"" + userObj.id + "\">修改</a>" + "</td></tr>"
+                            }
+                            $('#userList').append(rows);
+
+                            $(".editUser").click(function(){
+                                var query = $.query.set("userid", $(this).attr("uid")).toString();
+                                popWin.onClose(function(){
+                                    reloadUsers(1);
+                                });
+                                popWin.showWin("850","500","编辑用户","edit-user.html" + query);
+                            });
+                        } else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取用户列表失败!");
+                        }
+                    }
+            );
+        }
+
+        reloadUsers(1);
+    });
+</script>
+
+</body>
+
+</html>

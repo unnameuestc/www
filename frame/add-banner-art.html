@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>编辑banner图</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<p class="frame-header">编辑banner图</p>
+
+<div style="width: 550px; margin-left: auto; margin-right: auto; padding-top: 30px;  margin-bottom: 30px;">
+    <div class="panel panel-default">
+        <div class="panel-body" style="padding-top: 30px;">
+            <form class="form-horizontal">
+
+                <div class="form-group">
+                    <label for="inputTypeID" class="col-sm-2 control-label" >TypeID</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="inputTypeID" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputTargetID" class="col-sm-2 control-label">TargetID</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="inputTargetID" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputDes" class="col-sm-2 control-label">描述信息</label>
+                    <div class="col-sm-10">
+                        <textarea rows="3" class="form-control" id="inputDes" required></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputPicFile" class="col-sm-2 control-label">Banner图片</label>
+                    <div class="col-sm-10">
+                        <input type="file" class="form-control" id="inputPicFile">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button id="doAdd" type="submit" class="btn btn-primary" style="min-width: 135px;">提交</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        //出错
+        function showError(err){
+            $("#doAdd").attr("disabled", false);
+            $("#doAdd").text("提交");
+            $("#errStr").show();
+            $("#errStr").text(err);
+        }
+
+        //上传图片
+        function uploadImage(bannerId){
+            $("#doAdd").text("正在上传图片...");
+            upladFile("inputPicFile", function(result){
+                var json = jQuery.parseJSON(result);
+                if(json.isOk){
+                    submitAll(bannerId, json.msg);
+                }else{
+                    showError(json.msg);
+                }
+            });
+        }
+
+        //提交数据
+        function submitAll(bannerId, imgPath){
+            $("#doAdd").text("正在提交数据...");
+            if(!isNull(bannerId)){
+                banner_editBanner(
+                        bannerId,
+                        $("#inputDes").val(),
+                        imgPath,
+                        function(XMLHttpRequest, textStatus, errorThrown) {
+                            showError("提交数据失败!");
+                        },
+                        function(json){
+                            if(json.invoke){
+                                var query = $.query
+                                        .set("bannerid", json.result.banner.id)
+                                        .set("backurl", "edit-banner.html" + $.query.set("bannerid", bannerId).toString())
+                                        .toString();
+
+                                self.location = "show-banner.html" + query;
+                            }else {
+                                showError("获取banner图信息失败: " + json.error);
+                            }
+                        }
+                );
+            }
+        }
+
+        var banner_id = $.query.get("bannerid");
+        if(!isNull(banner_id)){
+            $(".frame-header").text("修改Banner图");
+            $(document).attr("title", "修改Banner图");
+            banner_getBannerById(banner_id,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        showError("获取banner图信息失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            //分类、艺术家、标题、视频地址
+                            $("#inputTypeID").val(json.result.banner.typeId);
+                            $("#inputTargetID").val(json.result.banner.targetId);
+                            $("#inputDes").val(json.result.banner.description);
+
+                            $("#inputTypeID").attr("disabled", true);
+                            $("#inputTargetID").attr("disabled", true);
+                        }else {
+                            showError("获取banner图信息失败: " + json.error);
+                        }
+                    }
+            );
+        }
+
+        $("#doAdd").click(function(){
+            if(isNull(banner_id) && isNull($("#inputPicFile").val())){
+                showError("请选择图片");
+                return;
+            }
+
+            $("#doAdd").attr("disabled", true);
+            $("#doAdd").text("正在提交...");
+            $("#errStr").hide();
+
+            //检测banner图是否存在
+//            banner_getBannerById(banner_id,
+//                    function(XMLHttpRequest, textStatus, errorThrown) {
+//                        showError("获取banner图信息失败!");
+//                    },
+//                    function(json){
+//                        if(json.invoke){
+//                            var target_id = json.result.banner.targetid;
+//
+//                            submitAll(banner_id, targetid, null);
+//                        }else {
+//                            showError("获取banner图信息失败: " + json.error);
+//                        }
+//                    }
+//            );
+
+//            submitAll(banner_id, null);
+
+            if(isNull($("#inputPicFile").val())){
+                submitAll(banner_id, null);
+            }else{
+                uploadImage(banner_id);
+            }
+
+        });
+    });
+</script>
+
+</body>
+
+</html>

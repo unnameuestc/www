@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>编辑订购协议</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<p class="frame-header">添加&修改订购协议</p>
+
+<div style="width: 60%; margin-left: auto; margin-right: auto; padding-top: 10px;  margin-bottom: 30px;">
+    <script id="container" name="content" type="text/plain" style="width:100%;" ></script>
+    <button id="doAdd" type="submit" class="btn btn-primary" style="width: 135px; margin-top: 20px;">提交</button>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<!-- 配置文件 -->
+<script type="text/javascript" src="/ueditor/ueditor.config.js"></script>
+<!-- 编辑器源码文件 -->
+<script type="text/javascript" src="/ueditor/ueditor.all.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        var ue = UE.getEditor('container', {
+            initialFrameHeight: 220,
+            enableAutoSave: false
+        });
+
+        //出错
+        function showError(err) {
+            $("#doAdd").attr("disabled", false);
+            $("#doAdd").text("提交");
+            $("#errStr").show();
+            $("#errStr").text(err);
+        }
+
+        //在UEditor中显示已有订购协议内容
+        trade_getTreaty(
+                function(XMLHttpRequest, textStatus, errorThrown) {
+                    showError("获取《订购协议》信息失败!");
+                },
+                function(json){
+                    if(json.invoke){
+                        //内容
+                        ue.ready(function() {
+                            ue.setContent(json.result.treaty.content);
+                        });
+                    }else {
+                        showError("获取《订购协议》信息失败: " + json.error);
+                    }
+                }
+        );
+
+        //编辑内容
+        function submitAll() {
+            $("#doAdd").text("正在提交数据...");
+            trade_editTreaty(
+                    ue.getContent(),
+                    function (XMLHttpRequest, textStatus, errorThrown) {
+                        showError("提交数据失败!");
+                    },
+                    function (json) {
+                        if (json.invoke) {
+                        var query = $.query
+                                .set("backurl", "edit-treaty.html")
+                                .toString();
+                        self.location = "show-treaty.html" + query;
+                        } else {
+                            showError("提交数据失败: " + json.error);
+                        }
+                    }
+            );
+        }
+
+        //提交数据
+        $("#doAdd").click(function(){
+            if(!ue.hasContents()){
+                showError("内容不能为空！");
+                return;
+            }
+
+            $("#doAdd").attr("disabled", true);
+            $("#doAdd").text("正在提交...");
+            $("#errStr").hide();
+            submitAll();
+        });
+    });
+</script>
+
+</body>
+
+</html>

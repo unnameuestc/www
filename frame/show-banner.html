@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>Banner图预览</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<p class="frame-header">Banner图预览</p>
+
+<div style="width: 550px; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+    <div class="panel panel-default">
+        <div class="panel-body" style="padding-top: 30px; padding-left: 20px; padding-right: 20px;">
+
+
+            <div style="font-size: 30px; text-align: center; margin-bottom: 40px;">
+                <h1 id="picture"></h1>
+                <img  id="pic" src="#" alt="Banner图片" width="500px" height="300px" style="border: 2px solid #ccc;">
+            </div>
+
+            <p id="des" style="margin-top: 40px; font-size: 20px; font-weight: 600;">描述信息</p>
+            <p id="description" style="text-align: center; margin-bottom: 20px; font-size: 14px;"></p>
+
+
+            <p id="time" style="margin-top: 40px; font-size: 20px; font-weight: 600;">创建时间</p>
+            <p id="createTime" style="text-align: left; margin-bottom: 20px; font-size: 14px;"></p>
+
+        </div>
+    </div>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/api.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        var bannerId = $.query.get("bannerid");
+
+        //错误信息提示
+        function showError(err){
+            $("#errStr").show();
+            $("errStr").text(err);
+        }
+
+//        alert("BannerID:" + bannerId);
+
+        banner_getBannerById(bannerId,
+                function(XMLHttpRequest, textStatus, errorThrown) {
+                    showError("获取banner图信息失败!2222");
+                },
+                function(json){
+                    if(json.invoke){
+                        $("#des").show();
+                        $("#description").text(json.result.banner.description);
+                        $("#time").show();
+                        $("#createTime").text(json.result.banner.createTime);
+                        $("#picUrl").text(json.result.banner.picUrl);
+                        $("#pic").attr("src", json.result.banner.picUrl);
+                    }else {
+                        showError("获取banner图信息失败1: " + json.error);
+                    }
+                }
+        );
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>管理轮播图</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<div class="frame-header">
+    <span>管理轮播图</span>
+    <select class="form-control" id="bannerType" style="max-width: 150px; float: left;">
+        <option value="1">首页轮播图</option>
+        <option value="2">易艺轮播图</option>
+    </select>
+</div>
+
+<div style="width: 80%; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+
+    <table class="table" id="bannerList" style="display: none;">
+        <tr>
+            <td>ID</td>
+            <td>TypeID</td>
+            <td>轮播类型</td>
+            <td>TargetID</td>
+            <td>描述信息</td>
+            <td>创建时间</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<script src="/js/api.js"></script>
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/popwin.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#bannerType').bind("input propertychange", function() {
+            reloadBanners($("#bannerType").val());
+        });
+
+        function reloadBanners(typeId){
+
+            //重置table
+            $("#bannerList").html("<tr><td>ID</td>"
+                    + "<td>TypeID</td>"
+                    + "<td>轮播类型</td>"
+                    + "<td>TargetID</td>"
+                    + "<td>描述信息</td>"
+                    + "<td>创建时间</td><td></td><td></td></tr>");
+
+            banner_getBanners(typeId,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取轮播图列表失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            if(json.result.cnt <= 0) {
+                                $("#errStr").show();
+                                $("#bannerList").hide();
+                                $("#errStr").text("没有轮播图");
+                            }else {
+                                $("#errStr").hide();
+                                $("#bannerList").show();
+                            }
+
+                            var rows = "";
+                            for(i = 0; i < json.result.cnt; i++) {
+                                var bannerObj = json.result.banners[i];
+                                rows += "<tr><td>"
+                                        + bannerObj.id + "</td><td>"
+                                        + bannerObj.typeId + "</td><td>"
+                                        + bannerObj.name + "</td><td>"
+                                        + bannerObj.targetId + "</td><td>"
+                                        + "<a class=\"showBanner\" href=\"#\" id=\"" + bannerObj.id + "\" + typeid=\"" + bannerObj.typeId + "\" + targetid=\"" + bannerObj.targetId + "\">" + bannerObj.description.substr(0, 20) + "</a>" + "</td><td>"
+//                                        + "<a href=\"#\" onclick=\"javascript:justShowString('" + bannerObj.description+"')\" \">" + bannerObj.description.substr(0, 20) + "</a></td><td>"
+                                        + bannerObj.createTime + "</td><td>"
+                                        + "<a class=\"editBanner\" href=\"#\" id=\"" + bannerObj.id + "\">编辑</a>" + "</td><td>"
+                                        + "<a class=\"delBanner\" href=\"#\" id=\"" + bannerObj.id + "\">删除</a>" + "</td></tr>";
+                            }
+                            $('#bannerList').append(rows);
+
+                            //预览
+                            $(".showBanner").click(function(){
+                                var query = $.query.set("bannerid", $(this).attr("id")).toString();
+                                popWin.showWin("850", "500", "预览Banner图", "show-banner.html" + query);
+
+//                                var typeId = $(this).attr("typeid");
+//                                if(typeId == 1){
+//                                    var query = $.query.set("videoid", $(this).attr("targetid")).toString();
+//                                    popWin.showWin("850", "500", "预览视频", "show-video.html" + query);
+//                                }else if(typeId == 2) {
+//                                    var query = $.query.set("bannerid", $(this).attr("id")).toString();
+//                                    popWin.showWin("850", "500", "预览Banner图", "show-banner.html" + query);
+//                                }else if(typeId == 3){
+//                                    var query = $.query.set("pageid", $(this).attr("targetid")).toString();
+//                                    popWin.showWin("850", "500", "预览文章", "show-page.html" + query);
+//                                }
+                            });
+
+                            //编辑
+                            $(".editBanner").click(function(){
+                                var query = $.query.set("bannerid", $(this).attr("id")).toString();
+                                popWin.onClose(function(){
+                                    reloadBanners($('#bannerType').val());
+                                });
+                                popWin.showWin("850","500","编辑轮播图","edit-banner.html" + query);
+                            });
+
+                            $(".delBanner").click(function(){
+                                var bid = $(this).attr("id");
+                                swal({
+                                            title: "确定删除?",
+                                            text: "是否删除该轮播图，删除后不可恢复!",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#DD6B55",
+                                            cancelButtonText: "取消",
+                                            confirmButtonText: "确定删除",
+                                            closeOnConfirm: false
+                                        },
+                                        function() {
+                                            banner_delBanner(
+                                                    bid,
+                                                    function(XMLHttpRequest, textStatus, errorThrown) {
+                                                        swal("出错", "轮播图删除失败, 请重试.", "error");
+                                                        fixSwalCss();
+                                                    },
+                                                    function(json){
+                                                        if(json.invoke){
+                                                            swal("已删除!", "轮播图已删除.", "success");
+                                                            fixSwalCss();
+
+                                                            //重新加载
+                                                            reloadBanners($("#bannerType").val());
+                                                        }else {
+                                                            swal("出错", "轮播图删除失败: " + json.error, "error");
+                                                            fixSwalCss();
+                                                        }
+                                                    }
+                                            );
+                                        });
+                                fixSwalCss();
+                            });
+                        }else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取轮播图列表失败!");
+                        }
+                    }
+            );
+        }
+
+        reloadBanners($("#bannerType").val());
+    });
+</script>
+
+</body>
+
+</html>

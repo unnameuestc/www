@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>管理评论</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<div class="frame-header">
+    <span>管理评论</span>
+    <select class="form-control" id="commentType" style="max-width: 100px; float: left;">
+        <option value="1">视频</option>
+        <option value="2">艺术品</option>
+        <option value="3">文章</option>
+    </select>
+</div>
+
+<span id="commentPage" currpage="1" style="padding-top: 6px; margin-left: 20px; font-size: 16px; float: left;"></span>
+
+<div style="width: 80%; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+
+    <table class="table" id="commentList" style="display: none;">
+        <tr>
+            <td>ID</td>
+            <td>评论对象</td>
+            <td>评论者</td>
+            <td>创建日期</td>
+            <td>内容</td>
+            <td>标记</td>
+        </tr>
+    </table>
+
+    <ul id="pager" class="pagination" style="display: none; margin-top: 0px;">
+        <li id="pre-page"><a href="#">上一页</a></li>
+        <li id="next-page"><a href="#">下一页</a></li>
+    </ul>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<script src="/js/api.js"></script>
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/popwin.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#commentType').bind("input propertychange", function() {
+            reloadComments($("#commentType").val(), 1);
+        });
+
+        $("#pre-page > a").click(function(){
+            var typeId = $('#commentType').val();
+            var currPage = Number($("#commentPage").attr("currpage"));
+            reloadComments(typeId, currPage - 1);
+        });
+
+        $("#next-page > a").click(function(){
+            var typeId = $('#commentType').val();
+            var currPage = Number($("#commentPage").attr("currpage"));
+            reloadComments(typeId, currPage + 1);
+        });
+
+        function reloadComments(typeId, page){
+            if(page <= 0){
+                return;
+            }
+
+            if(page > $('#pager').attr("cnt")){
+                return;
+            }
+
+            //重置table
+            $("#commentList").html("<tr><td>ID</td>"
+                    + "<td>评论对象</td>"
+                    + "<td>评论者</td>"
+                    + "<td>创建日期</td>"
+                    + "<td>内容</td>"
+                    + "<td>标记</td></tr>");
+
+            comment_getAllComments(typeId, page,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取评论列表失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            var pageCnt = Math.ceil(json.result.allCnt / 10);
+                            $("#commentPage").text("分页: " + page + "/" + pageCnt);
+                            $("#commentPage").attr("currpage", page);
+                            $('#pager').attr("cnt", pageCnt);
+                            if(json.result.allCnt > 10){
+                                $("#pager").show();
+                            }else{
+                                $("#pager").hide();
+                            }
+
+                            if(json.result.cnt <= 0) {
+                                $("#errStr").show();
+                                $("#commentPage").hide();
+                                $("#commentList").hide();
+                                $("#errStr").text("没有评论");
+                            }else {
+                                $("#errStr").hide();
+                                $("#commentPage").show();
+                                $("#commentList").show();
+                            }
+
+                            var rows = "";
+                            for(i = 0; i < json.result.cnt; i++) {
+                                var commObj = json.result.comments[i];
+                                rows += "<tr><td>"
+                                        + commObj.id + "</td><td>"
+                                        + commObj.targetId + "</td><td>"
+                                        + commObj.userNickName + "</td><td>"
+                                        + commObj.createTime + "</td><td>"
+                                        + "<a href=\"#\" onclick=\"javascript:justShowString('" + commObj.content+"')\" \">" + commObj.content.substr(0, 25) + "</a></td><td>";
+
+                                if (commObj.valid) {
+                                    rows += "<a style=\"color: #5cb85c;\" class=\"markValid\" href=\"#\" valid=\"false\" cid=\"" + commObj.id + "\">正常评论</a>" + "</td><td>";
+                                } else {
+                                    rows += "<a style=\"color: #ff0000;\" class=\"markValid\" href=\"#\" valid=\"true\" cid=\"" + commObj.id + "\">垃圾评论</a>" + "</td><td>";
+                                }
+                                rows += "<a class=\"delComment\" href=\"#\" cid=\"" + commObj.id + "\">删除</a>" + "</td></tr>"
+                            }
+                            $('#commentList').append(rows);
+
+                            $(".markValid").click(function(){
+                                var cid = $(this).attr("cid");
+                                var valid = $(this).attr("valid");
+                                swal({
+                                            title: "标记为" +　((valid == "false") ? "垃圾评论" : "正常评论"),
+                                            text: "是否标记？",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#DD6B55",
+                                            cancelButtonText: "取消",
+                                            confirmButtonText: "确定标记",
+                                            closeOnConfirm: false
+                                        },
+                                        function() {
+                                            comment_markValid(
+                                                    cid,
+                                                    valid,
+                                                    function(XMLHttpRequest, textStatus, errorThrown) {
+                                                        swal("出错", "评论标记失败, 请重试.", "error");
+                                                        fixSwalCss();
+                                                    },
+                                                    function(json){
+                                                        if(json.invoke){
+                                                            swal("已标记!", "评论已标记.", "success");
+                                                            fixSwalCss();
+
+                                                            //重新加载
+                                                            reloadComments($('#commentType').val(), $("#commentPage").attr("currpage"));
+                                                        }else {
+                                                            swal("出错", "评论标记失败: " + json.error, "error");
+                                                            fixSwalCss();
+                                                        }
+                                                    }
+                                            );
+                                });
+                                fixSwalCss();
+                            });
+
+                            $(".delComment").click(function(){
+                                var cid = $(this).attr("cid");
+                                swal({
+                                            title: "确定删除?",
+                                            text: "是否删除该评论以及该评论的所有回复，删除后不可恢复!",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#DD6B55",
+                                            cancelButtonText: "取消",
+                                            confirmButtonText: "确定删除",
+                                            closeOnConfirm: false
+                                        },
+                                        function() {
+                                            comment_delComment(
+                                                    cid,
+                                                    function(XMLHttpRequest, textStatus, errorThrown) {
+                                                        swal("出错", "评论删除失败, 请重试.", "error");
+                                                        fixSwalCss();
+                                                    },
+                                                    function(json){
+                                                        if(json.invoke){
+                                                            swal("已删除!", "评论已删除.", "success");
+                                                            fixSwalCss();
+
+                                                            //重新加载
+                                                            reloadComments($('#commentType').val(), $("#commentPage").attr("currpage"));
+                                                        }else {
+                                                            swal("出错", "评论删除失败: " + json.error, "error");
+                                                            fixSwalCss();
+                                                        }
+                                                    }
+                                            );
+                                        });
+                                fixSwalCss();
+                            });
+                        }else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取评论列表失败!");
+                        }
+                    }
+            );
+        }
+
+        reloadComments($("#commentType").val(), 1);
+    });
+</script>
+
+</body>
+
+</html>

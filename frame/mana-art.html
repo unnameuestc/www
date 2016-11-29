@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>管理艺术品</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="frame-body">
+<div class="frame-header">
+    <span>管理艺术品</span>
+    <button id="addArt" class="btn btn-success" style="margin-left: 20px">添加</button>
+    <select class="form-control" id="artType" style="max-width: 100px; float: left;"></select>
+    <span id="artCnt" style="padding-top: 6px; margin-left: 20px; font-size: 16px; float: left;"></span>
+</div>
+
+<span id="artPage" currpage="1" style="padding-top: 6px; margin-left: 20px; font-size: 16px; float: left;"></span>
+
+<div style="width: 80%; margin-left: auto; margin-right: auto; padding-top: 30px; margin-bottom: 30px;">
+
+    <table class="table" id="artList" style="display: none;">
+        <tr>
+            <td>ID</td>
+            <td>标题</td>
+            <td>艺术家</td>
+            <td>创建日期</td>
+            <td>图片数</td>
+            <td>交易状态</td>
+            <td>评论数</td>
+            <td>收藏数</td>
+            <td>点击数</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
+    <ul id="pager" class="pagination" style="display: none; margin-top: 0px;">
+        <li id="pre-page"><a href="#">上一页</a></li>
+        <li id="next-page"><a href="#">下一页</a></li>
+    </ul>
+
+    <div id="errStr" class="alert alert-danger" role="alert" style="text-align: center; display: none;"></div>
+</div>
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- Include all compiled plugins (below), or include indiaidual files as needed -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<link href="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/sweetalert/0.5.0/sweet-alert.min.js"></script>
+
+<script src="/js/api.js"></script>
+<script src="/js/jquery.query-object.js"></script>
+<script src="/js/popwin.js"></script>
+
+<script type="text/javascript">
+
+    function tradeState(stateId){
+        switch (stateId){
+            case 0: return "不可交易";
+            case 1: return "可交易";
+            case 2: return "交易中";
+            case 3: return "交易完成";
+            case 4: return "交易失败";
+        }
+    }
+
+    $(document).ready(function(){
+        $("#addArt").click(function(){
+            popWin.onClose(function(){
+                reloadAll($('#artType').val());
+            });
+            popWin.showWin("850","500","添加艺术品","add-art.html");
+        });
+
+        $('#artType').bind("input propertychange", function() {
+            initPager();
+        });
+
+        $("#pre-page > a").click(function(){
+            var typeId = $('#artType').val();
+            var currPage = Number($("#artPage").attr("currpage"));
+            reloadArts(typeId, currPage - 1);
+        });
+
+        $("#next-page > a").click(function(){
+            var typeId = $('#artType').val();
+            var currPage = Number($("#artPage").attr("currpage"));
+            reloadArts(typeId, currPage + 1);
+        });
+
+        function initPager(){
+            var cnt = $('#artType').find("option:selected").attr("cnt");
+            $("#artCnt").text("艺术品个数: " + cnt);
+            $("#artPage").text("分页: 1/" + Math.ceil(cnt / 10));
+
+            if(cnt > 10){
+                $("#pager").show();
+            }else{
+                $("#pager").hide();
+            }
+
+            if(cnt <= 0) {
+                $("#errStr").show();
+                $("#artPage").hide();
+                $("#artList").hide();
+                $("#errStr").text("该分类没有艺术品");
+            }else {
+                $("#errStr").hide();
+                $("#artPage").show();
+                $("#artList").show();
+                reloadArts($("#artType").val(), 1);
+            }
+        }
+
+        function reloadArts(typeId, page){
+            var cnt = $('#artType').find("option:selected").attr("cnt");
+            var pageCnt = Math.ceil(cnt / 10);
+
+            if(page <= 0){
+                return;
+            }
+
+            if(page > pageCnt){
+                return;
+            }
+
+            $("#artPage").text("分页: " + page + "/" + pageCnt);
+            $("#artPage").attr("currpage", page);
+
+            //重置table
+            $("#artList").html("<tr><td>ID</td>"
+                    + "<td>标题</td>"
+                    + "<td>艺术家</td>"
+                    + "<td>创建日期</td>"
+                    + "<td>图片数</td>"
+                    + "<td>交易状态</td>"
+                    + "<td>评论数</td>"
+                    + "<td>收藏数</td>"
+                    + "<td>点击数</td>"
+                    + "<td></td>"
+                    + "<td></td>"
+                    + "<td>设为轮播图</td>"
+                    + "<td></td></tr>");
+
+            art_getArtList(typeId, false, page,
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取艺术品列表失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            var rows = "";
+                            for(i = 0; i < json.result.cnt; i++){
+                                var artObj = json.result.arts[i];
+                                if( artObj.tradeState == 0) {
+                                    rows += "<tr><td>"
+                                            + artObj.id + "</td><td>"
+                                            + "<a class=\"showArt\" href=\"#\" aid=\"" + artObj.id + "\">"
+                                            + artObj.title.substr(0, 10) + "</a>" + "</td><td>"
+                                            + artObj.userNickName + "</td><td>"
+                                            + artObj.createTime + "</td><td>"
+                                            + "<a class=\"editImg\" href=\"#\" aid=\"" + artObj.id + "\">" + artObj.imgCnt + "</a>" + "</td><td>"
+                                            + tradeState(artObj.tradeState) + "</td><td>"
+                                            + artObj.commentCnt + "</td><td>"
+                                            + artObj.favorCnt + "</td><td>"
+                                            + artObj.click + "</td><td>"
+                                            + "<a class=\"editArt\" href=\"#\" aid=\"" + artObj.id + "\">编辑</a>" + "</td><td>"
+                                            + "<a class=\"delArt\" href=\"#\" aid=\"" + artObj.id + "\">删除</a>" + "</td><td>"
+                                            + "<input type=\"button\" value=\"首页\" class=\"isHomeBanner\" aid=\"" + artObj.id + "\"/>" + "</td></tr>";
+                                }else if(artObj.tradeState > 0){
+                                    rows += "<tr><td>"
+                                            + artObj.id + "</td><td>"
+                                            + "<a class=\"showArt\" href=\"#\" aid=\"" + artObj.id + "\">"
+                                            + artObj.title.substr(0, 10) + "</a>" + "</td><td>"
+                                            + artObj.userNickName + "</td><td>"
+                                            + artObj.createTime + "</td><td>"
+                                            + "<a class=\"editImg\" href=\"#\" aid=\"" + artObj.id + "\">" + artObj.imgCnt + "</a>" + "</td><td>"
+                                            + tradeState(artObj.tradeState) + "</td><td>"
+                                            + artObj.commentCnt + "</td><td>"
+                                            + artObj.favorCnt + "</td><td>"
+                                            + artObj.click + "</td><td>"
+                                            + "<a class=\"editArt\" href=\"#\" aid=\"" + artObj.id + "\">编辑</a>" + "</td><td>"
+                                            + "<a class=\"delArt\" href=\"#\" aid=\"" + artObj.id + "\">删除</a>" + "</td><td>"
+                                            + "<input type=\"button\" value=\"首页\" class=\"isHomeBanner\" aid=\"" + artObj.id + "\"/>" + " "
+                                            + "<input type=\"button\" value=\"易艺\" class=\"isTradeBanner\" aid=\"" + artObj.id + "\" tradestate=\"" + artObj.tradestate + "\" />" + "</td></tr>";
+                                }
+                            }
+                            $('#artList').append(rows);
+
+                            $(".showArt").click(function(){
+                                var query = $.query.set("artid", $(this).attr("aid")).toString();
+                                popWin.showWin("850","500","预览艺术品","show-art.html" + query);
+                            });
+
+                            $(".editArt").click(function(){
+                                var query = $.query.set("artid", $(this).attr("aid")).toString();
+                                popWin.onClose(function(){
+                                    reloadAll($('#artType').val());
+                                });
+                                popWin.showWin("850","500","编辑艺术品","add-art.html" + query);
+                            });
+
+                            $(".isHomeBanner").click(function(){
+                                var aid = $(this).attr("aid");
+                                swal({
+                                    title: "添加为首页轮播图？",
+                                    type: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#DD6B55",
+                                    cancelButtonText: "取消",
+                                    confirmButtonText: "确定添加",
+                                    closeOnConfirm: false
+                                    },
+                                    function(){
+                                        //得到信息
+                                        art_getArtInfo(
+                                                aid,
+                                                function(XMLHttpRequest, textStatus, errorThrown){
+                                                    swal("出错", "获取艺术品信息失败,请重试!", "error");
+                                                    fixSwalCss();
+                                                },
+                                                function(json){
+                                                    if(json.invoke) {
+    //                                            var tradeState = json.result.art.tradeState;  //name
+                                                        var typeId = 2;  //typeid
+                                                        var id = json.result.art.id;  //targetid
+                                                        var title = json.result.art.title;  //description
+    //                                            var createTime = json.result.art.createTime;
+                                                        var picUrl = json.result.art.imgList[0].url;  //picurl
+
+                                                        banner_addHomeBanner(
+                                                                typeId,
+                                                                id,
+                                                                title,
+                                                                picUrl,
+                                                                function (XMLHttpRequest, textStatus, errorThrown) {
+                                                                    swal("出错", "轮播图添加失败！", "error");
+                                                                    fixSwalCss();
+                                                                },
+                                                                function (json) {
+                                                                    if(json.invoke) {
+                                                                        swal("已添加!", "轮播图已添加.", "success");
+                                                                        fixSwalCss();
+                                                                    }else{
+                                                                        swal("出错", "轮播图添加失败: 数据库操作出错！", "error");
+                                                                        fixSwalCss();
+                                                                    }
+                                                                }
+                                                        );
+                                                    }else{
+                                                        swal("出错", "轮播图添加失败: " + json.error, "error");
+                                                        fixSwalCss();
+                                                    }
+                                                }
+                                        );
+                                    });
+                                fixSwalCss();
+                            });
+
+                            $(".isTradeBanner").click(function(){
+                                var aid = $(this).attr("aid");
+                                swal({
+                                            title: "添加为易艺轮播图？",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#DD6B55",
+                                            cancelButtonText: "取消",
+                                            confirmButtonText: "确定添加",
+                                            closeOnConfirm: false
+                                        },
+                                        function () {
+                                            //得到信息
+                                            art_getArtInfo(
+                                                    aid,
+                                                    function (XMLHttpRequest, textStatus, errorThrown) {
+                                                        swal("出错", "获取艺术品信息失败,请重试!", "error");
+                                                        fixSwalCss();
+                                                    },
+                                                    function (json) {
+                                                        if (json.invoke) {
+                                                            var id = json.result.art.id;  //targetid
+                                                            var title = json.result.art.title;  //description
+                                                            var picUrl = json.result.art.imgList[0].url;  //picurl
+
+                                                            //alert("艺术品信息：" + " " + id + " " + title + " " + picUrl);
+
+                                                            banner_addTradeBanner(
+                                                                    id,
+                                                                    title,
+                                                                    picUrl,
+                                                                    function (XMLHttpRequest, textStatus, errorThrown) {
+                                                                        swal("出错", "轮播图添加失败！", "error");
+                                                                        fixSwalCss();
+                                                                    },
+                                                                    function (json) {
+                                                                        if (json.invoke) {
+                                                                            swal("已添加!", "轮播图已添加.", "success");
+                                                                            fixSwalCss();
+                                                                        } else {
+                                                                            swal("出错", "轮播图添加失败: 数据库操作出错！", "error");
+                                                                            fixSwalCss();
+                                                                        }
+                                                                    }
+                                                            );
+                                                        } else {
+                                                            swal("出错", "轮播图添加失败: " + json.error, "error");
+                                                            fixSwalCss();
+                                                        }
+                                                    }
+                                            );
+                                        });
+                                fixSwalCss();
+
+                            });
+
+
+                            $(".editImg").click(function(){
+                                var query = $.query.set("artid", $(this).attr("aid")).toString();
+                                popWin.onClose(function(){
+                                    reloadAll($('#artType').val());
+                                });
+                                popWin.showWin("1024","550","编辑图片","mana-img.html" + query);
+                            });
+
+                            $(".delArt").click(function(){
+                                var aid = $(this).attr("aid");
+                                swal({
+                                            title: "确定删除?",
+                                            text: "是否删除该艺术品？，删除后不可恢复!",
+                                            type: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: "#DD6B55",
+                                            cancelButtonText: "取消",
+                                            confirmButtonText: "确定删除",
+                                            closeOnConfirm: false
+                                        },
+                                        function() {
+                                            art_delArt(
+                                                    aid,
+                                                    function(XMLHttpRequest, textStatus, errorThrown) {
+                                                        swal("出错", "艺术品删除失败, 请重试.", "error");
+                                                        fixSwalCss();
+                                                    },
+                                                    function(json){
+                                                        if(json.invoke){
+                                                            swal("已删除!", "艺术品已删除.", "success");
+                                                            fixSwalCss();
+
+                                                            //重新加载
+                                                            reloadAll($('#artType').val());
+                                                        }else {
+                                                            swal("出错", "艺术品删除失败: " + json.error, "error");
+                                                            fixSwalCss();
+                                                        }
+                                                    }
+                                            );
+                                        });
+                                fixSwalCss();
+                            });
+                        }else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取艺术品列表失败!");
+                        }
+                    }
+            );
+        }
+
+        function fixSwalCss(){
+            $(".sweet-overlay").hide();
+            $(".sweet-alert").css("border", "10px solid #ccc");
+        }
+
+        function reloadAll(typeId){
+            art_getArtTypes(
+                    function(XMLHttpRequest, textStatus, errorThrown) {
+                        $("#errStr").show();
+                        $("#errStr").text("获取艺术品分类失败!");
+                    },
+                    function(json){
+                        if(json.invoke){
+                            var options = "";
+                            for(i = 0; i < json.result.cnt; i++){
+                                options += "<option value='"
+                                        + json.result.types[i].id
+                                        + "' "
+                                        + "cnt='"
+                                        + json.result.types[i].artCnt
+                                        + "'>"
+                                        + json.result.types[i].description_cn
+                                        + "</option>";
+                            }
+                            $('#artType').html(options);
+                            if(typeId != null){
+                                $('#artType').val(typeId);
+                            }
+                            initPager();
+                        }else {
+                            $("#errStr").show();
+                            $("#errStr").text("获取艺术品分类失败!");
+                        }
+                    }
+            );
+        }
+
+        reloadAll(null);
+    });
+</script>
+
+</body>
+
+</html>
